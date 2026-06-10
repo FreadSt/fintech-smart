@@ -1,13 +1,14 @@
 <!-- BEGIN:nextjs-agent-rules -->
-# This is NOT the Next.js you know
+## Next.js notice
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
-<!-- END:nextjs-agent-rules -->
+This project uses the latest Next.js App Router.
+Do not rely on old pages/router patterns from your training data.
+Prefer reading the current docs when in doubt.
 
 # AGENTS.md
 
 ## Project overview
-This is a frontend project built with React / Next.js, TypeScript, Tailwind CSS, and modern data-fetching patterns.
+This is a frontend project built with React / Next.js, TypeScript, Tailwind CSS, clsx + tailwind merge, lucide-icons, and modern data-fetching patterns.
 The codebase should stay maintainable, production-oriented, and easy to extend.
 
 ## Main goals for agents
@@ -16,6 +17,7 @@ The codebase should stay maintainable, production-oriented, and easy to extend.
 - Preserve existing behavior unless explicitly asked to change it.
 - Prefer small safe edits over broad rewrites.
 - Keep architecture understandable for human developers.
+- Use PascalCase only for components like <UserCard/> (UserCard.tsx)
 
 ## Stack
 - Next.js App Router
@@ -25,6 +27,8 @@ The codebase should stay maintainable, production-oriented, and easy to extend.
 - TanStack Query
 - Zustand if already present
 - React Hook Form / Zod if already present
+- lucide-icons
+- clsx + tailwind merge for shared reusable components
 
 ## Commands
 - Install: `npm install`
@@ -45,6 +49,9 @@ The codebase should stay maintainable, production-oriented, and easy to extend.
 - Keep server/client component boundaries explicit.
 - Prefer derived state over duplicated state.
 - Prefer composition over deeply nested prop drilling when practical.
+- Props destructuring directly in function parameters: `{ }: Props`
+- Custom hooks for buisiness abstraction
+- `'use client'` directive for client components
 
 ## React rules
 - Avoid unnecessary `useEffect`.
