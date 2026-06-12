@@ -1,8 +1,7 @@
 import { ArrowUpRight, TrendingUp } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
-
-const sparklineHeights = [28, 42, 36, 52, 44, 58, 48, 62, 54, 68];
+import { balanceSparkline, dashboardSummary } from "@/lib/dashboard/mock-data";
 
 export function TotalBalanceCard() {
   return (
@@ -23,7 +22,7 @@ export function TotalBalanceCard() {
       <div>
         <p className="text-sm font-medium text-black/70">Total Balance</p>
         <p className="mt-2 text-4xl font-thin tracking-tight md:text-[5.5rem]">
-          $25,230.00
+          {dashboardSummary.totalBalance}
         </p>
       </div>
 
@@ -31,15 +30,15 @@ export function TotalBalanceCard() {
         <div className="flex flex-wrap gap-2">
           <span className="inline-flex items-center gap-1 rounded-full bg-black px-3 py-1 text-xs font-semibold text-primary">
             <TrendingUp className="size-3" />
-            10%
+            {dashboardSummary.balanceTrend}
           </span>
           <span className="inline-flex items-center rounded-full bg-black px-3 py-1 text-xs font-semibold text-primary">
-            + $2,780.00
+            {dashboardSummary.balanceDelta}
           </span>
         </div>
 
         <div className="flex h-16 items-end gap-1">
-          {sparklineHeights.map((height, index) => (
+          {balanceSparkline.map((height, index) => (
             <div
               key={index}
               className="w-1.5 rounded-full bg-black/25"

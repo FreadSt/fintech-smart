@@ -1,6 +1,7 @@
 import { ArrowUpRight, TrendingDown, TrendingUp } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
+import { dashboardSummary } from "@/lib/dashboard/mock-data";
 
 type StatCardProps = {
   label: string;
@@ -38,8 +39,18 @@ function StatCard({ label, amount, trend, trendUp = true }: StatCardProps) {
 export function IncomeExpenseCards() {
   return (
     <div className="flex h-full flex-col gap-4">
-      <StatCard label="Income" amount="$2,259.70" trend="10%" trendUp />
-      <StatCard label="Expense" amount="$1,589.65" trend="12%" trendUp={false} />
+      <StatCard
+        label="Income"
+        amount={dashboardSummary.income}
+        trend={dashboardSummary.incomeTrend}
+        trendUp
+      />
+      <StatCard
+        label="Expense"
+        amount={dashboardSummary.expense}
+        trend={dashboardSummary.expenseTrend}
+        trendUp={false}
+      />
     </div>
   );
 }

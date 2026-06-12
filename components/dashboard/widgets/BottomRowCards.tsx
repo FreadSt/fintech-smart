@@ -1,8 +1,7 @@
 import { ArrowUpRight, RefreshCw, TrendingUp } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
-
-const transferAvatars = ["JD", "AM", "SK"];
+import { dashboardSummary, goals, quickTransfers } from "@/lib/dashboard/mock-data";
 
 export function BottomRowCards() {
   return (
@@ -20,14 +19,21 @@ export function BottomRowCards() {
           </IconButton>
         }
       >
-        <div className="relative p-5">
-          <div className="absolute inset-0 bg-primary/30" style={{ width: "50%" }} />
-          <div className="relative">
-            <p className="text-sm text-muted">My Goal</p>
-            <p className="mt-2 text-lg font-semibold">50% Completed</p>
-            <p className="mt-1 text-sm text-muted">$1500 / $3k</p>
+        {goals.slice(0, 1).map((goal) => (
+          <div key={goal.name} className="relative p-5">
+            <div
+              className="absolute inset-0 bg-primary/30"
+              style={{ width: `${goal.progress}%` }}
+            />
+            <div className="relative">
+              <p className="text-sm text-muted">My Goal</p>
+              <p className="mt-2 text-lg font-semibold">{goal.progress}% Completed</p>
+              <p className="mt-1 text-sm text-muted">
+                {goal.saved} / {goal.target}
+              </p>
+            </div>
           </div>
-        </div>
+        ))}
       </Card>
 
       <Card
@@ -40,10 +46,10 @@ export function BottomRowCards() {
       >
         <p className="text-sm text-muted">Savings</p>
         <div className="mt-3 flex items-end justify-between gap-3">
-          <p className="text-2xl font-semibold">$1,678.00</p>
+          <p className="text-2xl font-semibold">{dashboardSummary.savings}</p>
           <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary">
             <TrendingUp className="size-3" />
-            8.5%
+            {dashboardSummary.savingsTrend}
           </span>
         </div>
       </Card>
@@ -58,13 +64,13 @@ export function BottomRowCards() {
       >
         <p className="mb-4 text-sm text-muted">Quick Transfer</p>
         <div className="flex items-center gap-3">
-          {transferAvatars.map((avatar, index) => (
+          {quickTransfers.map((transfer, index) => (
             <div
-              key={avatar}
+              key={transfer.initials}
               className="flex size-11 items-center justify-center rounded-full border border-border bg-surface-elevated text-xs font-semibold"
               style={{ marginLeft: index === 0 ? 0 : -8 }}
             >
-              {avatar}
+              {transfer.initials}
             </div>
           ))}
         </div>

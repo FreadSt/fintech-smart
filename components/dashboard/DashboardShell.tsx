@@ -1,4 +1,4 @@
-import { DashboardNav } from "./DashboardNav";
+import { DashboardNav } from "../navigation/DashboardNav";
 
 type DashboardShellProps = {
   children: React.ReactNode;

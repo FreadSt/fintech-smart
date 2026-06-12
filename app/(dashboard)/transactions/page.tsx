@@ -1,11 +1,65 @@
+import { ArrowDownLeft, ArrowUpRight, Search } from "lucide-react";
 import { Card } from "@/components/ui/Card";
+import { transactions } from "@/lib/dashboard/mock-data";
+import { cn } from "@/lib/utils/cn";
 
 export default function TransactionsPage() {
   return (
-    <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">Transactions</h1>
-      <Card className="p-8">
-        <p className="text-muted">Transactions dashboard coming soon.</p>
+    <div className="space-y-5">
+      <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
+        <div>
+          <p className="text-sm text-muted">Activity</p>
+          <h1 className="text-2xl font-semibold tracking-tight">Transactions</h1>
+        </div>
+        <div className="flex w-full items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-sm text-muted md:w-72">
+          <Search className="size-4" />
+          <span>Search transactions</span>
+        </div>
+      </div>
+
+      <Card className="overflow-hidden p-0">
+        <div className="grid grid-cols-[1.2fr_0.8fr_0.8fr_0.6fr] gap-4 border-b border-border px-5 py-4 text-xs uppercase text-muted max-md:hidden">
+          <span>Merchant</span>
+          <span>Account</span>
+          <span>Status</span>
+          <span className="text-right">Amount</span>
+        </div>
+        <div className="divide-y divide-border">
+          {transactions.map((transaction) => (
+            <div
+              key={`${transaction.name}-${transaction.date}`}
+              className="grid gap-4 px-5 py-4 md:grid-cols-[1.2fr_0.8fr_0.8fr_0.6fr] md:items-center"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex size-11 items-center justify-center rounded-2xl bg-surface-elevated text-xs font-semibold">
+                  {transaction.positive ? (
+                    <ArrowDownLeft className="size-4 text-primary" />
+                  ) : (
+                    <ArrowUpRight className="size-4 text-secondary" />
+                  )}
+                </div>
+                <div>
+                  <p className="font-medium">{transaction.name}</p>
+                  <p className="text-sm text-muted">
+                    {transaction.category} / {transaction.date}
+                  </p>
+                </div>
+              </div>
+              <p className="text-sm text-muted">{transaction.account}</p>
+              <span className="w-fit rounded-full bg-surface-elevated px-3 py-1 text-xs text-muted">
+                {transaction.status}
+              </span>
+              <p
+                className={cn(
+                  "text-right font-semibold max-md:text-left",
+                  transaction.positive ? "text-primary" : "text-foreground",
+                )}
+              >
+                {transaction.amount}
+              </p>
+            </div>
+          ))}
+        </div>
       </Card>
     </div>
   );
