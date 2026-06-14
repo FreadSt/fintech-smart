@@ -17,7 +17,7 @@ export default function LoginPage() {
           <div className="mb-6">
             <h1 className="text-xl font-semibold">Sign in</h1>
             <p className="mt-1 text-sm text-muted">
-              Use your demo credentials to access the dashboard.
+              Use your Supabase account to access the dashboard.
             </p>
           </div>
           <LoginForm action={loginAction} />

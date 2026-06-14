@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { AUTH_COOKIE_NAME, PROTECTED_ROUTES } from "@/lib/auth/constants";
-import { verifySessionToken } from "@/lib/auth/session";
+import { PROTECTED_ROUTES } from "@/lib/auth/constants";
+import { updateSession } from "@/lib/supabase/middleware";
 
 function isProtectedRoute(pathname: string): boolean {
   return PROTECTED_ROUTES.some((route) =>
@@ -10,8 +10,8 @@ function isProtectedRoute(pathname: string): boolean {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
-  const isAuthenticated = await verifySessionToken(token);
+  const { response, user } = await updateSession(request);
+  const isAuthenticated = Boolean(user);
   const isLoginPage = pathname === "/login";
 
   if (isProtectedRoute(pathname) && !isAuthenticated) {
@@ -22,7 +22,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {

@@ -1,5 +1,3 @@
-export const AUTH_COOKIE_NAME = "finflex_session";
-
 export const PROTECTED_ROUTES = [
   "/",
   "/analytics",
