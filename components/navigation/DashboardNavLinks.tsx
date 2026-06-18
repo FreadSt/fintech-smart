@@ -15,6 +15,7 @@ export function DashboardNavLinks({
   orientation = "horizontal",
   onLinkClick,
 }: DashboardNavLinksProps) {
+
   const isHorizontal = orientation === "horizontal";
 
   return (
@@ -40,14 +41,14 @@ export function DashboardNavLinks({
               "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors",
               isHorizontal
                 ? undefined
-                : "w-full justify-start",
+                : "w-1/2 justify-center",
               active
                 ? "bg-primary text-black"
                 : "text-muted hover:text-foreground"
             )}
           >
             <Icon className="size-4" strokeWidth={2} />
-           <span className="hidden min-[1030px]:inline">
+           <span className="md:hidden min-[1030px]:inline lg:block">
               {label}
            </span>
           </Link>

@@ -21,7 +21,7 @@ export function TotalBalanceCard() {
     >
       <div>
         <p className="text-sm font-medium text-black/70">Total Balance</p>
-        <p className="mt-2 text-4xl font-thin tracking-tight md:text-[5.5rem]">
+        <p className="mt-2 text-4xl font-light tracking-tight md:text-[5.5rem]">
           {dashboardSummary.totalBalance}
         </p>
       </div>

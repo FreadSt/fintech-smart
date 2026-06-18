@@ -18,7 +18,7 @@ export function CreditCardWidget() {
     >
       <div>
         <p className="text-sm text-muted">{primaryCard.type}</p>
-        <p className="mt-2 text-6xl font-thin tracking-tight">{primaryCard.balance}</p>
+        <p className="mt-2 text-6xl font-light tracking-tight">{primaryCard.balance}</p>
       </div>
 
       <div className="flex items-end justify-between">

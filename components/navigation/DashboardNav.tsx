@@ -50,7 +50,7 @@ export function DashboardNav() {
             )}
           </button>
 
-          <form action={logoutAction} className="hidden sm:block">
+          <form action={logoutAction} className="sm:block">
             <button
               type="submit"
               aria-label="Sign out"

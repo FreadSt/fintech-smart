@@ -5,6 +5,16 @@ import "./globals.css";
 const gilroy = localFont({
   src: [
     {
+      path: "../public/fonts/Gilroy-Thin_0.ttf",
+      weight: "250",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/Gilroy-Light_0.ttf",
+      weight: "300",
+      style: "normal",
+    },
+    {
       path: "../public/fonts/Gilroy-Regular_0.ttf",
       weight: "400",
       style: "normal",

@@ -1,6 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { PROTECTED_ROUTES } from "@/lib/auth/constants";
-import { updateSession } from "@/lib/supabase/middleware";
 
 function isProtectedRoute(pathname: string): boolean {
   return PROTECTED_ROUTES.some((route) =>
@@ -8,10 +7,15 @@ function isProtectedRoute(pathname: string): boolean {
   );
 }
 
-export async function middleware(request: NextRequest) {
+function hasSupabaseAuthCookie(request: NextRequest) {
+  return request.cookies
+    .getAll()
+    .some((cookie) => cookie.name.startsWith("sb-") && cookie.name.includes("auth-token"));
+}
+
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const { response, user } = await updateSession(request);
-  const isAuthenticated = Boolean(user);
+  const isAuthenticated = hasSupabaseAuthCookie(request);
   const isLoginPage = pathname === "/login";
 
   if (isProtectedRoute(pathname) && !isAuthenticated) {
@@ -22,7 +26,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  return response;
+  return NextResponse.next();
 }
 
 export const config = {
