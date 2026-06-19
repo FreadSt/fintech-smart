@@ -1,4 +1,5 @@
 import { ArrowUpRight, RefreshCw, TrendingUp } from "lucide-react";
+import { Text } from "@/shared/text/Text";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { dashboardSummary, goals, quickTransfers } from "@/lib/dashboard/mock-data";
@@ -26,11 +27,11 @@ export function BottomRowCards() {
               style={{ width: `${goal.progress}%` }}
             />
             <div className="relative">
-              <p className="text-sm text-muted">My Goal</p>
-              <p className="mt-2 text-lg font-semibold">{goal.progress}% Completed</p>
-              <p className="mt-1 text-sm text-muted">
+              <Text className="text-sm text-muted">My Goal</Text>
+              <Text className="mt-2 text-lg font-semibold">{goal.progress}% Completed</Text>
+              <Text className="mt-1 text-sm text-muted">
                 {goal.saved} / {goal.target}
-              </p>
+              </Text>
             </div>
           </div>
         ))}
@@ -44,13 +45,13 @@ export function BottomRowCards() {
           </IconButton>
         }
       >
-        <p className="text-sm text-muted">Savings</p>
+        <Text className="text-sm text-muted">Savings</Text>
         <div className="mt-3 flex items-end justify-between gap-3">
-          <p className="text-2xl font-semibold">{dashboardSummary.savings}</p>
-          <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary">
+          <Text className="text-2xl font-semibold">{dashboardSummary.savings}</Text>
+          <Text as="span" className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary">
             <TrendingUp className="size-3" />
             {dashboardSummary.savingsTrend}
-          </span>
+          </Text>
         </div>
       </Card>
 
@@ -62,7 +63,7 @@ export function BottomRowCards() {
           </IconButton>
         }
       >
-        <p className="mb-4 text-sm text-muted">Quick Transfer</p>
+        <Text className="mb-4 text-sm text-muted">Quick Transfer</Text>
         <div className="flex items-center gap-3">
           {quickTransfers.map((transfer, index) => (
             <div

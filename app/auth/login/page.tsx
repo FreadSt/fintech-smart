@@ -1,4 +1,5 @@
-import { loginAction } from "@/app/login/actions";
+import { loginAction } from "@/app/auth/login/actions";
+import { Text } from "@/shared/text/Text";
 import { Card } from "@/components/ui/Card";
 import { LoginForm } from "@/components/auth/LoginForm";
 
@@ -10,15 +11,15 @@ export default function LoginPage() {
           <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-lg font-bold text-black">
             F
           </div>
-          <span className="text-2xl font-semibold tracking-tight">FinFlex</span>
+          <Text as="span" className="text-2xl font-semibold tracking-tight">FinFlex</Text>
         </div>
 
         <Card className="p-8">
           <div className="mb-6">
-            <h1 className="text-xl font-semibold">Sign in</h1>
-            <p className="mt-1 text-sm text-muted">
+            <Text as="h1" className="text-xl font-semibold">Sign in</Text>
+            <Text className="mt-1 text-sm text-muted">
               Use your Supabase account to access the dashboard.
-            </p>
+            </Text>
           </div>
           <LoginForm action={loginAction} />
         </Card>

@@ -1,4 +1,5 @@
 import { ArrowUpRight, TrendingDown, TrendingUp } from "lucide-react";
+import { Text } from "@/shared/text/Text";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { dashboardSummary } from "@/lib/dashboard/mock-data";
@@ -20,17 +21,17 @@ function StatCard({ label, amount, trend, trendUp = true }: StatCardProps) {
         </IconButton>
       }
     >
-      <p className="text-sm text-muted">{label}</p>
+      <Text className="text-sm text-muted">{label}</Text>
       <div className="mt-3 flex items-end justify-between gap-3">
-        <p className="text-2xl font-semibold tracking-tight">{amount}</p>
-        <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-1 text-xs font-semibold text-[#e6ff4b]">
+        <Text className="text-2xl font-semibold tracking-tight">{amount}</Text>
+        <Text as="span" className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-1 text-xs font-semibold text-[#e6ff4b]">
           {trendUp ? (
             <TrendingUp className="size-3" />
           ) : (
             <TrendingDown className="size-3" />
           )}
           {trend}
-        </span>
+        </Text>
       </div>
     </Card>
   );

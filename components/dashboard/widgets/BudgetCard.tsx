@@ -1,4 +1,6 @@
 import { ArrowUpRight, ChevronDown } from "lucide-react";
+import { Button } from "@/shared/button/Button";
+import { Text } from "@/shared/text/Text";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { budgetLegend, budgetMonths, budgetSegments } from "@/lib/dashboard/mock-data";
@@ -9,13 +11,13 @@ export function BudgetCard() {
       className="p-6"
       headerAction={
         <div className="inline-flex gap-2">
-          <button
+          <Button
             type="button"
             className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-elevated px-3 py-1.5 text-xs text-muted"
           >
             Monthly
             <ChevronDown className="size-3.5" />
-          </button>
+          </Button>
           <IconButton label="View budget details" variant="surface" size="sm">
             <ArrowUpRight />
           </IconButton>
@@ -23,7 +25,7 @@ export function BudgetCard() {
       }
     >
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Budget</h2>
+        <Text as="h2" className="text-lg font-semibold">Budget</Text>
       </div>
 
       <div className="flex h-44 items-end justify-between gap-3">
@@ -38,7 +40,7 @@ export function BudgetCard() {
                 />
               ))}
             </div>
-            <span className="text-[11px] text-muted">{budgetMonths[index]}</span>
+            <Text as="span" className="text-[11px] text-muted">{budgetMonths[index]}</Text>
           </div>
         ))}
       </div>
@@ -46,7 +48,7 @@ export function BudgetCard() {
       <div className="mt-5 flex flex-wrap gap-4">
         {budgetLegend.map((item) => (
           <div key={item.label} className="flex items-center gap-2 text-xs text-muted">
-            <span className={`size-2.5 rounded-full ${item.colorClass}`} />
+            <Text as="span" className={`size-2.5 rounded-full ${item.colorClass}`} />
             {item.label}
           </div>
         ))}
