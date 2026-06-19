@@ -1,4 +1,5 @@
 import { CalendarClock, CreditCard, SendHorizontal, Wallet } from "lucide-react";
+import { Text } from "@/shared/text/Text";
 import { Card } from "@/components/ui/Card";
 import {
   paymentMethods,
@@ -10,14 +11,14 @@ export default function PaymentPage() {
   return (
     <div className="space-y-5">
       <div>
-        <p className="text-sm text-muted">Move money</p>
-        <h1 className="text-2xl font-semibold tracking-tight">Payment</h1>
+        <Text className="text-sm text-muted">Move money</Text>
+        <Text as="h1" className="text-2xl font-semibold tracking-tight">Payment</Text>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
         <Card className="p-6">
           <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Quick transfer</h2>
+            <Text as="h2" className="text-lg font-semibold">Quick transfer</Text>
             <SendHorizontal className="size-5 text-primary" />
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
@@ -26,8 +27,8 @@ export default function PaymentPage() {
                 <div className="flex size-11 items-center justify-center rounded-full border border-border text-xs font-semibold">
                   {transfer.initials}
                 </div>
-                <p className="mt-3 text-sm font-medium">{transfer.name}</p>
-                <p className="mt-1 text-sm text-muted">Last sent {transfer.amount}</p>
+                <Text className="mt-3 text-sm font-medium">{transfer.name}</Text>
+                <Text className="mt-1 text-sm text-muted">Last sent {transfer.amount}</Text>
               </div>
             ))}
           </div>
@@ -35,7 +36,7 @@ export default function PaymentPage() {
 
         <Card className="p-6">
           <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Payment methods</h2>
+            <Text as="h2" className="text-lg font-semibold">Payment methods</Text>
             <Wallet className="size-5 text-secondary" />
           </div>
           <div className="space-y-3">
@@ -49,13 +50,13 @@ export default function PaymentPage() {
                     <CreditCard className="size-4" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium">{method.name}</p>
-                    <p className="text-xs text-muted">{method.type}</p>
+                    <Text className="text-sm font-medium">{method.name}</Text>
+                    <Text className="text-xs text-muted">{method.type}</Text>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm">{method.status}</p>
-                  <p className="text-xs text-muted">{method.due}</p>
+                  <Text className="text-sm">{method.status}</Text>
+                  <Text className="text-xs text-muted">{method.due}</Text>
                 </div>
               </div>
             ))}
@@ -65,20 +66,20 @@ export default function PaymentPage() {
 
       <Card className="p-6">
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Scheduled payments</h2>
+          <Text as="h2" className="text-lg font-semibold">Scheduled payments</Text>
           <CalendarClock className="size-5 text-primary" />
         </div>
         <div className="grid gap-3 md:grid-cols-3">
           {scheduledPayments.map((payment) => (
             <div key={payment.name} className="rounded-2xl bg-surface-elevated p-4">
               <div className="flex items-center justify-between gap-3">
-                <p className="font-medium">{payment.name}</p>
-                <span className="rounded-full bg-background px-3 py-1 text-xs text-muted">
+                <Text className="font-medium">{payment.name}</Text>
+                <Text as="span" className="rounded-full bg-background px-3 py-1 text-xs text-muted">
                   {payment.status}
-                </span>
+                </Text>
               </div>
-              <p className="mt-4 text-2xl font-semibold">{payment.amount}</p>
-              <p className="mt-1 text-sm text-muted">Due {payment.due}</p>
+              <Text className="mt-4 text-2xl font-semibold">{payment.amount}</Text>
+              <Text className="mt-1 text-sm text-muted">Due {payment.due}</Text>
             </div>
           ))}
         </div>

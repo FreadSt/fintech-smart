@@ -16,13 +16,13 @@ function hasSupabaseAuthCookie(request: NextRequest) {
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isAuthenticated = hasSupabaseAuthCookie(request);
-  const isLoginPage = pathname === "/login";
+  const isAuthPage = pathname === "/login" || pathname === "/signup";
 
   if (isProtectedRoute(pathname) && !isAuthenticated) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (isLoginPage && isAuthenticated) {
+  if (isAuthPage && isAuthenticated) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 

@@ -1,4 +1,5 @@
 import { ArrowUpRight, TrendingUp } from "lucide-react";
+import { Text } from "@/shared/text/Text";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { balanceSparkline, dashboardSummary } from "@/lib/dashboard/mock-data";
@@ -20,21 +21,21 @@ export function TotalBalanceCard() {
       }
     >
       <div>
-        <p className="text-sm font-medium text-black/70">Total Balance</p>
-        <p className="mt-2 text-4xl font-light tracking-tight md:text-[5.5rem]">
+        <Text className="text-sm font-medium text-black/70">Total Balance</Text>
+        <Text className="mt-2 text-4xl font-light tracking-tight md:text-[5.5rem]">
           {dashboardSummary.totalBalance}
-        </p>
+        </Text>
       </div>
 
       <div className="flex items-end justify-between gap-4">
         <div className="flex flex-wrap gap-2">
-          <span className="inline-flex items-center gap-1 rounded-full bg-black px-3 py-1 text-xs font-semibold text-primary">
+          <Text as="span" className="inline-flex items-center gap-1 rounded-full bg-black px-3 py-1 text-xs font-semibold text-primary">
             <TrendingUp className="size-3" />
             {dashboardSummary.balanceTrend}
-          </span>
-          <span className="inline-flex items-center rounded-full bg-black px-3 py-1 text-xs font-semibold text-primary">
+          </Text>
+          <Text as="span" className="inline-flex items-center rounded-full bg-black px-3 py-1 text-xs font-semibold text-primary">
             {dashboardSummary.balanceDelta}
-          </span>
+          </Text>
         </div>
 
         <div className="flex h-16 items-end gap-1">

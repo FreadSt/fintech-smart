@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Text } from "@/shared/text/Text";
 import { isNavItemActive, NAV_ITEMS } from "@/lib/navigation";
 import { cn } from "@/lib/utils/cn";
 
@@ -48,9 +49,9 @@ export function DashboardNavLinks({
             )}
           >
             <Icon className="size-4" strokeWidth={2} />
-           <span className="md:hidden min-[1030px]:inline lg:block">
+           <Text as="span" className="md:hidden min-[1030px]:inline lg:block">
               {label}
-           </span>
+           </Text>
           </Link>
         );
       })}

@@ -2,6 +2,8 @@
 
 import { ArrowUpRight } from "lucide-react";
 import { useState } from "react";
+import { Button } from "@/shared/button/Button";
+import { Text } from "@/shared/text/Text";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { transactions } from "@/lib/dashboard/mock-data";
@@ -34,11 +36,11 @@ export function TransactionHistoryCard() {
         </IconButton>
       }
     >
-      <h2 className="mb-4 text-lg font-semibold">Transaction history</h2>
+      <Text as="h2" className="mb-4 text-lg font-semibold">Transaction history</Text>
 
       <div className="mb-5 inline-flex rounded-full border border-border bg-surface-elevated p-1">
         {tabs.map((tab) => (
-          <button
+          <Button
             key={tab}
             type="button"
             onClick={() => setActiveTab(tab)}
@@ -50,7 +52,7 @@ export function TransactionHistoryCard() {
             )}
           >
             {tab}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -65,18 +67,18 @@ export function TransactionHistoryCard() {
                 {transaction.initial}
               </div>
               <div>
-                <p className="text-sm font-medium">{transaction.name}</p>
-                <p className="text-xs text-muted">{transaction.date}</p>
+                <Text className="text-sm font-medium">{transaction.name}</Text>
+                <Text className="text-xs text-muted">{transaction.date}</Text>
               </div>
             </div>
-            <p
+            <Text
               className={cn(
                 "text-sm font-semibold",
                 transaction.positive ? "text-primary" : "text-foreground",
               )}
             >
               {transaction.amount}
-            </p>
+            </Text>
           </div>
         ))}
       </div>

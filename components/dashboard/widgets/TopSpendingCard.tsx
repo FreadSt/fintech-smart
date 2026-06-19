@@ -1,4 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
+import { Text } from "@/shared/text/Text";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { spendingCategories, spendingTotal } from "@/lib/dashboard/mock-data";
@@ -38,7 +39,7 @@ export function TopSpendingCard() {
         </IconButton>
       }
     >
-      <h2 className="mb-6 text-lg font-semibold">Top spending</h2>
+      <Text as="h2" className="mb-6 text-lg font-semibold">Top spending</Text>
 
       <div className="relative flex h-54 w-full items-end justify-center">
         <svg
@@ -73,7 +74,7 @@ export function TopSpendingCard() {
         </svg>
 
         <div className="w-full">
-          <p className="pb-1 text-center text-2xl font-bold">{spendingTotal}</p>
+          <Text className="pb-1 text-center text-2xl font-bold">{spendingTotal}</Text>
           <div className="space-y-1">
             {spendingCategories.map((category) => (
               <div
@@ -81,10 +82,10 @@ export function TopSpendingCard() {
                 className="flex items-center justify-between text-sm"
               >
                 <div className="flex items-center gap-2 text-muted">
-                  <span className={`size-1.5 rounded-full ${category.colorClass}`} />
-                  <span>{category.label}</span>
+                  <Text as="span" className={`size-1.5 rounded-full ${category.colorClass}`} />
+                  <Text as="span">{category.label}</Text>
                 </div>
-                <span>{category.percentage}%</span>
+                <Text as="span">{category.percentage}%</Text>
               </div>
             ))}
           </div>

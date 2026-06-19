@@ -7,4 +7,4 @@ export const PROTECTED_ROUTES = [
   "/cards",
 ] as const;
 
-export const PUBLIC_ROUTES = ["/login"] as const;
+export const PUBLIC_ROUTES = ["/login", "/signup"] as const;

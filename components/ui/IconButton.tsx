@@ -1,3 +1,4 @@
+import { Button } from "@/shared/button/Button";
 import { cn } from "@/lib/utils/cn";
 
 type IconButtonVariant = "ghost" | "surface" | "primary";
@@ -33,7 +34,7 @@ export function IconButton({
   ...props
 }: IconButtonProps) {
   return (
-    <button
+    <Button
       type={type}
       aria-label={label}
       className={cn(
@@ -45,6 +46,6 @@ export function IconButton({
       {...props}
     >
       {children}
-    </button>
+    </Button>
   );
 }
