@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LogOut, User } from "lucide-react";
 
-import { logoutAction } from "@/app/auth/login/actions";
+import { logoutAction } from "@/app/login/actions";
 import { Text } from "@/shared/text/Text";
 import { Button } from "@/shared/button/Button";
 
@@ -9,9 +9,7 @@ interface ProfileMenuProps {
   onClose: () => void;
 }
 
-export function ProfileMenu({
-  onClose,
-}: ProfileMenuProps) {
+export function ProfileMenu({ onClose }: ProfileMenuProps) {
   return (
     <>
       <div className="mb-3 flex items-center gap-3">
@@ -24,9 +22,7 @@ export function ProfileMenu({
             FinFlex user
           </Text>
 
-          <Text className="text-xs text-muted">
-            Dashboard account
-          </Text>
+          <Text className="text-xs text-muted">Dashboard account</Text>
         </div>
       </div>
 

@@ -3,14 +3,9 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Bell,
-  Menu,
-  SlidersHorizontal,
-  X,
-} from "lucide-react";
+import { Bell, Menu, SlidersHorizontal, X } from "lucide-react";
 
-import { logoutAction } from "@/app/auth/login/actions";
+import { logoutAction } from "@/app/login/actions";
 import { Button } from "@/shared/button/Button";
 import { Text } from "@/shared/text/Text";
 
@@ -41,26 +36,18 @@ export function DashboardNav() {
   const closeMobile = () => setMobileOpen(false);
 
   const toggleMenu = (menu: NavMenu) => {
-    setOpenMenu((current) =>
-      current === menu ? null : menu,
-    );
+    setOpenMenu((current) => (current === menu ? null : menu));
   };
 
   return (
     <>
       <header className="flex items-center justify-between gap-4 px-5 py-5 md:px-6">
-        <Link
-          href="/"
-          className="flex shrink-0 items-center gap-3"
-        >
+        <Link href="/" className="flex shrink-0 items-center gap-3">
           <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-base font-bold text-black">
             FF
           </div>
 
-          <Text
-            as="span"
-            className="text-lg font-semibold tracking-tight"
-          >
+          <Text as="span" className="text-lg font-semibold tracking-tight">
             FinFlex
           </Text>
         </Link>
@@ -111,23 +98,15 @@ export function DashboardNav() {
             open={openMenu === "profile"}
             className="right-0 top-11 w-64 max-w-[calc(100vw-2rem)]"
           >
-            <ProfileMenu
-              onClose={() => setOpenMenu(null)}
-            />
+            <ProfileMenu onClose={() => setOpenMenu(null)} />
           </DropdownMenu>
 
           <Button
             type="button"
             className="flex size-9 items-center justify-center rounded-full border border-border bg-surface-elevated text-foreground transition-colors hover:bg-surface md:hidden"
-            aria-label={
-              mobileOpen
-                ? "Close navigation"
-                : "Open navigation"
-            }
+            aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
             aria-expanded={mobileOpen}
-            onClick={() =>
-              setMobileOpen((prev) => !prev)
-            }
+            onClick={() => setMobileOpen((prev) => !prev)}
           >
             {mobileOpen ? (
               <X className="size-4" />

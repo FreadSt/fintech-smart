@@ -3,6 +3,7 @@ import { Text } from "@/shared/text/Text";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { spendingCategories, spendingTotal } from "@/lib/dashboard/mock-data";
+import Link from "next/link";
 
 const segmentGap = 5;
 const availableAngle = 180 - segmentGap * (spendingCategories.length - 1);
@@ -34,9 +35,11 @@ export function TopSpendingCard() {
     <Card
       className="p-6"
       headerAction={
-        <IconButton label="View spending details" variant="surface" size="sm">
-          <ArrowUpRight />
-        </IconButton>
+        <Link href="/analytics">
+          <IconButton label="View spending details" variant="surface" size="sm">
+            <ArrowUpRight />
+          </IconButton>
+        </Link>
       }
     >
       <Text as="h2" className="mb-6 text-lg font-semibold">Top spending</Text>
