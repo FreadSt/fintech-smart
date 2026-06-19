@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { transactions } from "@/lib/dashboard/mock-data";
 import { cn } from "@/lib/utils/cn";
+import Link from "next/link";
 
 const tabs = ["All", "Income", "Spending"] as const;
 
@@ -31,9 +32,15 @@ export function TransactionHistoryCard() {
     <Card
       className="flex h-full flex-col p-6"
       headerAction={
-        <IconButton label="View all transactions" variant="surface" size="sm">
+        <Link href="/transactions">
+        <IconButton 
+          label="View all transactions" 
+          variant="surface" 
+          size="sm"
+          >
           <ArrowUpRight />
         </IconButton>
+        </Link>
       }
     >
       <Text as="h2" className="mb-4 text-lg font-semibold">Transaction history</Text>

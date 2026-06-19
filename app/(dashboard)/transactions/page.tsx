@@ -12,10 +12,10 @@ export default function TransactionsPage() {
           <Text className="text-sm text-muted">Activity</Text>
           <Text as="h1" className="text-2xl font-semibold tracking-tight">Transactions</Text>
         </div>
-        <div className="flex w-full items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-sm text-muted md:w-72">
+        {/* <div className="flex w-full items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-sm text-muted md:w-72">
           <Search className="size-4" />
           <Text as="span">Search transactions</Text>
-        </div>
+        </div> */}
       </div>
 
       <Card className="overflow-hidden p-0">

@@ -10,7 +10,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   return (
-    <button type={type} className={cn(className)} {...props}>
+    <button type={type} className={cn(className, 'cursor-pointer')} {...props}>
       {children}
     </button>
   );
