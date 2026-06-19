@@ -2,16 +2,13 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
-import type { LoginState } from "@/app/auth/login/actions";
+import type { LoginState } from "@/app/login/actions";
 import { Button } from "@/shared/button/Button";
 import { Input } from "@/shared/input/Input";
 import { Text } from "@/shared/text/Text";
 
 type LoginFormProps = {
-  action: (
-    prevState: LoginState,
-    formData: FormData,
-  ) => Promise<LoginState>;
+  action: (prevState: LoginState, formData: FormData) => Promise<LoginState>;
   mode?: "login" | "signup";
 };
 
