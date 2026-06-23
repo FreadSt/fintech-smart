@@ -3,21 +3,25 @@ import { Text } from "@/shared/text/Text";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { balanceSparkline, dashboardSummary } from "@/lib/dashboard/mock-data";
+import Link from "next/link";
 
 export function TotalBalanceCard() {
   return (
     <Card
       variant="gradient-balance"
-      className="flex min-h-[220px] flex-col justify-between p-6"
+      className="flex min-h-full flex-col justify-between p-6"
       headerAction={
-        <IconButton
-          label="View balance details"
-          variant="surface"
-          size="sm"
-          className="border-black/10 bg-black/10 text-black hover:bg-black/20"
-        >
-          <ArrowUpRight />
-        </IconButton>
+        <Link href="/cards">
+          <IconButton
+            label="View balance details"
+            variant="surface"
+            size="sm"
+            className="border-black/10 bg-black/10 text-black hover:bg-black/20"
+          >
+            <ArrowUpRight />
+          </IconButton>
+        </Link>
+        
       }
     >
       <div>
