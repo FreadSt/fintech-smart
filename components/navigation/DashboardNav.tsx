@@ -41,7 +41,7 @@ export function DashboardNav() {
 
   return (
     <>
-      <header className="flex items-center justify-between gap-4 px-5 py-5 md:px-6">
+      <header className="flex items-center justify-between gap-4 px-5 pb-5 md:px-6">
         <Link href="/" className="flex shrink-0 items-center gap-3">
           <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-base font-bold text-black">
             FF

@@ -25,6 +25,54 @@ export const budgetSegments = [
   [50, 24, 16, 10],
 ];
 
+export type Period = 'daily' | 'weekly' | 'monthly';
+
+export interface BudgetEntry {
+  income: number;
+  spent: number;
+  scheduled: number;
+  savings: number;
+}
+
+export const budgetData: Record<Period, { labels: string[]; entries: BudgetEntry[] }> = {
+  monthly: {
+    labels: budgetMonths, 
+    entries: [
+      { income: 4200, spent: 2100, scheduled: 800, savings: 600 },
+      { income: 4500, spent: 2300, scheduled: 900, savings: 750 },
+      { income: 5000, spent: 2800, scheduled: 700, savings: 900 },
+      { income: 4800, spent: 2500, scheduled: 850, savings: 700 },
+      { income: 4300, spent: 2000, scheduled: 750, savings: 800 },
+      { income: 4700, spent: 2200, scheduled: 800, savings: 850 },
+      { income: 3800, spent: 1800, scheduled: 600, savings: 550 },
+      { income: 4600, spent: 2400, scheduled: 820, savings: 780 },
+    ],
+  },
+  weekly: {
+    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    entries: [
+      { income: 800, spent: 320, scheduled: 150, savings: 120 },
+      { income: 750, spent: 280, scheduled: 120, savings: 100 },
+      { income: 900, spent: 400, scheduled: 180, savings: 150 },
+      { income: 820, spent: 350, scheduled: 160, savings: 130 },
+      { income: 950, spent: 420, scheduled: 200, savings: 170 },
+      { income: 600, spent: 250, scheduled: 100, savings:  80 },
+      { income: 500, spent: 180, scheduled:  90, savings:  70 },
+    ],
+  },
+  daily: {
+    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+    entries: [
+      { income:    0, spent:   0, scheduled:  50, savings:   0 },
+      { income:    0, spent:   0, scheduled:  30, savings:   0 },
+      { income: 2400, spent:   0, scheduled:  80, savings: 200 },
+      { income:    0, spent: 850, scheduled: 120, savings:   0 },
+      { income:    0, spent: 420, scheduled:  90, savings: 100 },
+      { income:    0, spent: 180, scheduled:  60, savings:  50 },
+    ],
+  },
+};
+
 export const budgetLegend = [
   { label: "Income", colorClass: "bg-primary", amount: "$18,160" },
   { label: "Spent", colorClass: "bg-[#9db800]", amount: "$9,870" },
@@ -151,6 +199,7 @@ export const quickTransfers = [
   { name: "John Doe", initials: "JD", amount: "$250" },
   { name: "Anna Miller", initials: "AM", amount: "$180" },
   { name: "Sara Kim", initials: "SK", amount: "$320" },
+  { name: "Sally Johnson", initials: "SJ", amount: "$320" },
 ];
 
 export const paymentMethods = [

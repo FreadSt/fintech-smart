@@ -3,79 +3,61 @@ import { Text } from "@/shared/text/Text";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { dashboardSummary, goals, quickTransfers } from "@/lib/dashboard/mock-data";
+import Link from "next/link";
+import { QuickTransferCard } from "./QiuckTransferCard";
 
 export function BottomRowCards() {
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-      <Card
-        className="overflow-hidden p-0"
-        headerAction={
-          <IconButton
-            label="View goal details"
-            variant="surface"
-            size="sm"
-            className="right-4 top-4"
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+      <Card className="gap-3" headerAction={
+        <Link href="/plan">
+          <IconButton label="View goal details" variant="surface" size="sm">
+            <ArrowUpRight />
+          </IconButton>
+        </Link>
+      }>
+        <Text as="h2" className="mb-2 text-lg font-semibold">Top spending</Text>
+        <div className="grid grid-cols-2 gap-3">
+          <Card className=" overflow-hidden p-0">
+            {goals.slice(0, 1).map((goal) => (
+              <div key={goal.name} className=" p-3">
+                <div
+                  className="absolute inset-y-0 left-0 bg-primary/30"
+                  style={{ width: `${goal.progress}%` }}
+                />
+
+                <div className="relative z-10">
+                  <Text className="text-sm text-muted">My Goal</Text>
+                  <Text className="text-lg font-semibold">
+                    {goal.progress}% Completed
+                  </Text>
+                  <Text className="text-sm text-muted">
+                    {goal.saved} / {goal.target}
+                  </Text>
+                </div>
+              </div>
+            ))}
+          </Card>
+
+          <Card
+            className="p-3"
           >
-            <ArrowUpRight />
-          </IconButton>
-        }
-      >
-        {goals.slice(0, 1).map((goal) => (
-          <div key={goal.name} className="relative p-5">
-            <div
-              className="absolute inset-0 bg-primary/30"
-              style={{ width: `${goal.progress}%` }}
-            />
-            <div className="relative">
-              <Text className="text-sm text-muted">My Goal</Text>
-              <Text className="mt-2 text-lg font-semibold">{goal.progress}% Completed</Text>
-              <Text className="mt-1 text-sm text-muted">
-                {goal.saved} / {goal.target}
-              </Text>
+            <Text className="text-sm text-muted">Savings</Text>
+            <div className="mt-3 flex flex-col items-start justify-between gap-3">
+              <div className="flex gap-3">
+                <Text className="text-2xl font-semibold">{dashboardSummary.savings}</Text>
+                <Text as="span" className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-1.5 text-xs font-semibold text-primary">
+                  <TrendingUp className="size-3" />
+                  {dashboardSummary.savingsTrend}
+                </Text>
+              </div>
             </div>
-          </div>
-        ))}
-      </Card>
-
-      <Card
-        className="p-5"
-        headerAction={
-          <IconButton label="View savings details" variant="surface" size="sm">
-            <ArrowUpRight />
-          </IconButton>
-        }
-      >
-        <Text className="text-sm text-muted">Savings</Text>
-        <div className="mt-3 flex items-end justify-between gap-3">
-          <Text className="text-2xl font-semibold">{dashboardSummary.savings}</Text>
-          <Text as="span" className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary">
-            <TrendingUp className="size-3" />
-            {dashboardSummary.savingsTrend}
-          </Text>
+          </Card>
         </div>
       </Card>
 
-      <Card
-        className="p-5"
-        headerAction={
-          <IconButton label="Refresh transfers" variant="surface" size="sm">
-            <RefreshCw />
-          </IconButton>
-        }
-      >
-        <Text className="mb-4 text-sm text-muted">Quick Transfer</Text>
-        <div className="flex items-center gap-3">
-          {quickTransfers.map((transfer, index) => (
-            <div
-              key={transfer.initials}
-              className="flex size-11 items-center justify-center rounded-full border border-border bg-surface-elevated text-xs font-semibold"
-              style={{ marginLeft: index === 0 ? 0 : -8 }}
-            >
-              {transfer.initials}
-            </div>
-          ))}
-        </div>
-      </Card>
+      <QuickTransferCard />
     </div>
   );
 }
