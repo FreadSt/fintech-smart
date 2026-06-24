@@ -11,11 +11,11 @@ export function CreditCardWidget() {
     <Card
       variant="gradient-credit"
       className="flex min-h-full flex-col justify-between p-6"
-      headerAction={
-        <IconButton label="Add card" variant="primary" size="lg">
-          <Plus />
-        </IconButton>
-      }
+      // headerAction={
+      //   <IconButton label="Add card" variant="primary" size="lg">
+      //     <Plus />
+      //   </IconButton>
+      // }
     >
       <div>
         <Text className="text-sm text-muted">{primaryCard.type}</Text>
