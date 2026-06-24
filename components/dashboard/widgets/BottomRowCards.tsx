@@ -1,8 +1,8 @@
-import { ArrowUpRight, RefreshCw, TrendingUp } from "lucide-react";
+import { ArrowUpRight, TrendingUp } from "lucide-react";
 import { Text } from "@/shared/text/Text";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
-import { dashboardSummary, goals, quickTransfers } from "@/lib/dashboard/mock-data";
+import { dashboardSummary, goals } from "@/lib/dashboard/mock-data";
 import Link from "next/link";
 import { QuickTransferCard } from "./QiuckTransferCard";
 
