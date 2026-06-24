@@ -61,7 +61,8 @@ export function QuickTransferCard({
               >
                 {transfer.initials}
               </div>
-            ))}
+            ))
+         }
       </div>
     </Card>
   );
