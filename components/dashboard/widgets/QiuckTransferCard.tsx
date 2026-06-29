@@ -6,6 +6,7 @@ import { Text } from "@/shared/text/Text";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { quickTransfers } from "@/lib/dashboard/mock-data";
+import { WidgetEmptyState, WidgetSkeleton } from "./WidgetState";
 
 interface QuickTransfer {
   initials: string;
@@ -13,11 +14,13 @@ interface QuickTransfer {
 
 interface QuickTransferCardProps {
   transfers?: QuickTransfer[];
+  isLoading?: boolean;
   refreshDuration?: number;
 }
 
 export function QuickTransferCard({
   transfers = quickTransfers,
+  isLoading = false,
   refreshDuration = 1800,
 }: QuickTransferCardProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -44,26 +47,31 @@ export function QuickTransferCard({
       }
     >
       <Text className="mb-6 text-sm text-muted">Quick Transfer</Text>
-      <div className="flex gap-3 justify-around">
-        {isRefreshing
-          ? transfers.map((_, index) => (
-              <div
-                key={index}
-                className="size-15 animate-pulse rounded-full bg-surface-elevated"
-                style={{ marginLeft: index === 0 ? 0 : -8 }}
-              />
-            ))
-          : transfers.map((transfer, index) => (
-              <div
-                key={transfer.initials}
-                className="flex size-15 items-center justify-center rounded-full border border-border bg-surface-elevated text-xs font-semibold"
-                style={{ marginLeft: index === 0 ? 0 : -8 }}
-              >
-                {transfer.initials}
-              </div>
-            ))
-         }
-      </div>
+      {isLoading || isRefreshing ? (
+        <div className="flex justify-around gap-3">
+          {quickTransfers.map((_, index) => (
+            <WidgetSkeleton
+              key={index}
+              className="size-15 rounded-full"
+              style={{ marginLeft: index === 0 ? 0 : -8 }}
+            />
+          ))}
+        </div>
+      ) : transfers.length === 0 ? (
+        <WidgetEmptyState className="min-h-15" />
+      ) : (
+        <div className="flex justify-around gap-3">
+          {transfers.map((transfer, index) => (
+            <div
+              key={transfer.initials}
+              className="flex size-15 items-center justify-center rounded-full border border-border bg-surface-elevated text-xs font-semibold"
+              style={{ marginLeft: index === 0 ? 0 : -8 }}
+            >
+              {transfer.initials}
+            </div>
+          ))}
+        </div>
+      )}
     </Card>
   );
 }

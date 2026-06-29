@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { dashboardSummary } from "@/lib/dashboard/mock-data";
 import Link from "next/link";
+import { WidgetEmptyState, WidgetSkeleton } from "./WidgetState";
 
 type StatCardProps = {
   label: string;
@@ -33,7 +34,15 @@ function StatCard({ label, amount, trend, trendUp = true }: StatCardProps) {
   );
 }
 
-export function IncomeExpenseCards() {
+type IncomeExpenseCardsProps = {
+  isLoading?: boolean;
+  summary?: typeof dashboardSummary | null;
+};
+
+export function IncomeExpenseCards({
+  isLoading = false,
+  summary = dashboardSummary,
+}: IncomeExpenseCardsProps) {
   return (
     <div className="flex h-full flex-col">
       <Card 
@@ -49,21 +58,42 @@ export function IncomeExpenseCards() {
         <div className="mb-6 flex items-center justify-between">
           <Text as="h2" className="text-lg font-semibold">Income & Expenses</Text>
         </div>
-        <div className="flex flex-col gap-3">
-          <StatCard
-            label="Income"
-            amount={dashboardSummary.income}
-            trend={dashboardSummary.incomeTrend}
-            trendUp
-          />
-          <StatCard
-            label="Expense"
-            amount={dashboardSummary.expense}
-            trend={dashboardSummary.expenseTrend}
-            trendUp={false}
-          />
-        </div>
+        {isLoading ? (
+          <div className="flex flex-col gap-3">
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+          </div>
+        ) : !summary ? (
+          <WidgetEmptyState />
+        ) : (
+          <div className="flex flex-col gap-3">
+            <StatCard
+              label="Income"
+              amount={summary.income}
+              trend={summary.incomeTrend}
+              trendUp
+            />
+            <StatCard
+              label="Expense"
+              amount={summary.expense}
+              trend={summary.expenseTrend}
+              trendUp={false}
+            />
+          </div>
+        )}
       </Card>
     </div>
+  );
+}
+
+function StatCardSkeleton() {
+  return (
+    <Card className="flex flex-1 flex-col justify-between p-3">
+      <WidgetSkeleton className="h-4 w-20" />
+      <div className="mt-3 flex items-end justify-between gap-3">
+        <WidgetSkeleton className="h-8 w-28" />
+        <WidgetSkeleton className="h-6 w-14 rounded-full" />
+      </div>
+    </Card>
   );
 }
