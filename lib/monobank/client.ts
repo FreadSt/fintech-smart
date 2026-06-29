@@ -78,10 +78,9 @@ export async function fetchMonobankTransactions(
   if (accountId) {
     params.set("accountId", accountId);
   }
-
+  
   const response = await fetch(`/api/mono/transactions?${params.toString()}`, {
     method: "GET",
   });
-
   return readJsonOrThrow<MonobankTransactionsResponse>(response);
 }

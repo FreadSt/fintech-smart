@@ -100,7 +100,7 @@ export function TransactionsList({ from, to }: TransactionsListProps) {
                 transaction.amount === 0 && "text-muted",
               )}
             >
-              {formatKopecks(transaction.amount)}
+              {formatKopecks(transaction.amount, transaction.currency_code)}
             </Text>
           </div>
         );

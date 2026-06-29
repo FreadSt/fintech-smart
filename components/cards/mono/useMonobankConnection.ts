@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  MonobankApiError,
   connectMonobankToken,
   disconnectMonobankToken,
   fetchMonobankOverview,
@@ -52,9 +53,22 @@ export function useDisconnectMonobank() {
   });
 }
 
-export function useMonobankTransactions(from: number, to: number) {
+export function useMonobankTransactions(
+  from: number,
+  to: number,
+  accountId?: string,
+) {
   return useQuery({
-    queryKey: ["monobank-transactions", from, to],
-    queryFn: () => fetchMonobankTransactions(from, to),
+    queryKey: ["monobank-transactions", accountId ?? "default", from, to],
+    queryFn: () => fetchMonobankTransactions(from, to, accountId),
+    refetchOnWindowFocus: false,
+    retry: (failureCount, error) => {
+      if (error instanceof MonobankApiError && error.status === 429) {
+        return false;
+      }
+
+      return failureCount < 1;
+    },
+    staleTime: 30_000,
   });
 }

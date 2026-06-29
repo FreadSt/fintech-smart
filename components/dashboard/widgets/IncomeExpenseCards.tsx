@@ -6,6 +6,13 @@ import { dashboardSummary } from "@/lib/dashboard/mock-data";
 import Link from "next/link";
 import { WidgetEmptyState, WidgetSkeleton } from "./WidgetState";
 
+type CashflowSummary = {
+  income: string;
+  incomeTrend: string;
+  expense: string;
+  expenseTrend: string;
+};
+
 type StatCardProps = {
   label: string;
   amount: string;
@@ -36,7 +43,7 @@ function StatCard({ label, amount, trend, trendUp = true }: StatCardProps) {
 
 type IncomeExpenseCardsProps = {
   isLoading?: boolean;
-  summary?: typeof dashboardSummary | null;
+  summary?: CashflowSummary | null;
 };
 
 export function IncomeExpenseCards({

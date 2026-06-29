@@ -1,36 +1,60 @@
 "use client";
 
-import { CreditCard, Plus, ShieldCheck } from "lucide-react";
-import { useState } from "react";
-import { BankCardForm } from "@/components/cards/BankCardForm";
+import { CreditCard, Link2, RefreshCw, ShieldCheck } from "lucide-react";
+import { useState, type FormEvent } from "react";
 import { Card } from "@/components/ui/Card";
+import {
+  WidgetEmptyState,
+  WidgetSkeleton,
+} from "@/components/dashboard/widgets/WidgetState";
 import { Button } from "@/shared/button/Button";
+import { Input } from "@/shared/input/Input";
 import { Modal } from "@/shared/modal/Modal";
 import { Text } from "@/shared/text/Text";
-import {
-  useBankCards,
-  type BankCard,
-  type DashboardCard,
-} from "@/hooks/useBankCards";
+import type { BankCard } from "@/hooks/useBankCards";
 import { cn } from "@/lib/utils/cn";
+import { MonobankApiError } from "@/lib/monobank/client";
+import { toBankCard } from "@/lib/monobank/view/dashboard";
+import {
+  useConnectMonobank,
+  useMonobankOverview,
+} from "./mono/useMonobankConnection";
 
-type CardsPageClientProps = {
-  initialCards: DashboardCard[];
-};
-
-export function CardsPageClient({ initialCards }: CardsPageClientProps) {
-  const { bankCards, selectedCard, selectedCardId, addCard, selectCard } =
-    useBankCards(initialCards);
-  const [addModalOpen, setAddModalOpen] = useState(false);
+export function CardsPageClient() {
+  const overviewQuery = useMonobankOverview();
+  const connectMutation = useConnectMonobank();
+  const [connectModalOpen, setConnectModalOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [token, setToken] = useState("");
+  const [selectedCardId, setSelectedCardId] = useState(() => {
+    if (typeof window === "undefined") {
+      return "";
+    }
 
-  function handleCardAdded(card: Parameters<typeof addCard>[0]) {
-    addCard(card);
-    setAddModalOpen(false);
+    return window.localStorage.getItem("finflex:selected-monobank-card") ?? "";
+  });
+  const bankCards = (overviewQuery.data?.accounts ?? []).map((account, index) =>
+    toBankCard(account, index, overviewQuery.data?.connection?.client_name),
+  );
+  const activeCardId = selectedCardId || bankCards[0]?.id || "";
+  const selectedCard =
+    bankCards.find((card) => card.id === activeCardId) ?? bankCards[0];
+
+  function handleConnect(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    connectMutation.mutate(token, {
+      onSuccess: () => {
+        setToken("");
+        setConnectModalOpen(false);
+        window.localStorage.removeItem("finflex:selected-monobank-card");
+        setSelectedCardId("");
+      },
+    });
   }
 
   function handleCardSelected(cardId: string) {
-    selectCard(cardId);
+    window.localStorage.setItem("finflex:selected-monobank-card", cardId);
+    setSelectedCardId(cardId);
     setPickerOpen(false);
   }
 
@@ -44,10 +68,10 @@ export function CardsPageClient({ initialCards }: CardsPageClientProps) {
         <Button
           type="button"
           className="inline-flex w-fit items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-black"
-          onClick={() => setAddModalOpen(true)}
+          onClick={() => setConnectModalOpen(true)}
         >
-          <Plus className="size-4" />
-          Add card
+          <Link2 className="size-4" />
+          {overviewQuery.data?.connection ? "Replace token" : "Connect Monobank"}
         </Button>
       </div>
 
@@ -60,14 +84,26 @@ export function CardsPageClient({ initialCards }: CardsPageClientProps) {
             </div>
             <CreditCard className="size-5 text-primary" />
           </div>
-          {selectedCard ? (
-            <CardStack cards={bankCards} onClick={() => setPickerOpen(true)} />
+          {overviewQuery.isLoading ? (
+            <CardStackSkeleton />
+          ) : overviewQuery.error ? (
+            <ErrorPanel error={overviewQuery.error} />
+          ) : selectedCard ? (
+            <CardStack
+              cards={bankCards}
+              selectedCardId={activeCardId}
+              onClick={() => setPickerOpen(true)}
+            />
           ) : (
-            <EmptyCards onAdd={() => setAddModalOpen(true)} />
+            <EmptyCards onConnect={() => setConnectModalOpen(true)} />
           )}
         </Card>
 
-        {selectedCard ? <SelectedCardPanel card={selectedCard} /> : null}
+        {overviewQuery.isLoading ? (
+          <SelectedCardSkeleton />
+        ) : selectedCard ? (
+          <SelectedCardPanel card={selectedCard} />
+        ) : null}
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
@@ -83,43 +119,52 @@ export function CardsPageClient({ initialCards }: CardsPageClientProps) {
             </div>
             <div className="flex items-center justify-between rounded-2xl bg-surface-elevated p-4">
               <Text as="span" className="text-muted">Daily limit</Text>
-              <Text as="span">{selectedCard?.type === "Credit" ? "$2,500" : "$1,200"}</Text>
+              <Text as="span">{selectedCard?.limit ?? "No Data yet"}</Text>
             </div>
           </div>
         </Card>
 
         <Card className="p-6">
           <Text as="h2" className="mb-5 text-lg font-semibold">Recent card activity</Text>
-          <div className="space-y-4">
-            {selectedCard?.activities.map((activity) => (
-              <div key={activity.id} className="flex items-center justify-between gap-3">
-                <div>
-                  <Text className="text-sm font-medium">{activity.name}</Text>
-                  <Text className="text-xs text-muted">
-                    {activity.category} - {selectedCard.type} *{selectedCard.lastFour}
-                  </Text>
-                </div>
-                <Text
-                  className={cn(
-                    "text-sm font-semibold",
-                    activity.positive ? "text-accent-emerald" : "text-foreground",
-                  )}
-                >
-                  {activity.amount}
-                </Text>
-              </div>
-            ))}
-          </div>
+          <WidgetEmptyState className="min-h-36" />
         </Card>
       </div>
 
       <Modal
-        open={addModalOpen}
-        title="Add bank card"
-        className="max-w-xl"
-        onClose={() => setAddModalOpen(false)}
+        open={connectModalOpen}
+        title="Connect Monobank"
+        onClose={() => setConnectModalOpen(false)}
       >
-        <BankCardForm onSubmit={handleCardAdded} />
+        <form className="space-y-4" onSubmit={handleConnect}>
+          <div>
+            <Text className="mb-2 text-sm text-muted">Personal X-Token</Text>
+            <Input
+              autoFocus
+              className="w-full rounded-2xl border border-border bg-surface-elevated px-4 py-3 text-sm outline-none transition-colors placeholder:text-muted focus:border-primary"
+              placeholder="Paste X-Token"
+              type="password"
+              value={token}
+              onChange={(event) => setToken(event.target.value)}
+            />
+          </div>
+
+          {connectMutation.error ? (
+            <ErrorPanel error={connectMutation.error} />
+          ) : null}
+
+          <Button
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-semibold text-black disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={!token.trim() || connectMutation.isPending}
+            type="submit"
+          >
+            {connectMutation.isPending ? (
+              <RefreshCw className="size-4 animate-spin" />
+            ) : (
+              <Link2 className="size-4" />
+            )}
+            Validate and sync
+          </Button>
+        </form>
       </Modal>
 
       <Modal
@@ -133,7 +178,7 @@ export function CardsPageClient({ initialCards }: CardsPageClientProps) {
             <CardPreview
               key={card.id}
               card={card}
-              selected={card.id === selectedCardId}
+              selected={card.id === activeCardId}
               onClick={() => handleCardSelected(card.id)}
             />
           ))}
@@ -145,11 +190,16 @@ export function CardsPageClient({ initialCards }: CardsPageClientProps) {
 
 type CardStackProps = {
   cards: BankCard[];
+  selectedCardId: string;
   onClick: () => void;
 };
 
-function CardStack({ cards, onClick }: CardStackProps) {
-  const stackedCards = cards.slice(0, 3);
+function CardStack({ cards, selectedCardId, onClick }: CardStackProps) {
+  const selectedCard = cards.find((card) => card.id === selectedCardId);
+  const stackedCards = [
+    ...(selectedCard ? [selectedCard] : []),
+    ...cards.filter((card) => card.id !== selectedCardId),
+  ].slice(0, 3);
 
   return (
     <Button
@@ -162,6 +212,7 @@ function CardStack({ cards, onClick }: CardStackProps) {
           key={card.id}
           className={cn(
             "absolute inset-x-0 top-0 flex h-[210px] flex-col justify-between rounded-card border p-6 shadow-xl transition-transform",
+            "duration-300 ease-out hover:-translate-y-1",
             index === 0 ? "gradient-credit border-border/20" : "border-border bg-surface-elevated",
           )}
           style={{
@@ -239,7 +290,7 @@ function CardPreview({ card, selected, onClick }: CardPreviewProps) {
   return (
     <Button
       className={cn(
-        "rounded-card border p-5 text-left transition-colors",
+        "rounded-card border p-5 text-left transition-all duration-200 hover:-translate-y-1",
         selected ? "border-primary bg-primary/10" : "border-border bg-surface-elevated hover:border-primary/70",
       )}
       onClick={onClick}
@@ -263,20 +314,78 @@ function CardPreview({ card, selected, onClick }: CardPreviewProps) {
 }
 
 type EmptyCardsProps = {
-  onAdd: () => void;
+  onConnect: () => void;
 };
 
-function EmptyCards({ onAdd }: EmptyCardsProps) {
+function EmptyCards({ onConnect }: EmptyCardsProps) {
   return (
     <div className="flex min-h-[210px] flex-col items-center justify-center rounded-card border border-dashed border-border bg-surface-elevated p-6 text-center">
-      <Text className="text-sm text-muted">No cards yet</Text>
+      <Text className="text-sm text-muted">No Data yet</Text>
       <Button
         className="mt-4 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-black"
-        onClick={onAdd}
+        onClick={onConnect}
       >
-        <Plus className="size-4" />
-        Add card
+        <Link2 className="size-4" />
+        Connect Monobank
       </Button>
     </div>
+  );
+}
+
+function ErrorPanel({ error }: { error: Error }) {
+  const retryAfterSeconds =
+    error instanceof MonobankApiError ? error.retryAfterSeconds : undefined;
+
+  return (
+    <div className="rounded-card border border-border bg-surface-elevated/50 p-5">
+      <Text className="text-sm font-medium text-red-400">{error.message}</Text>
+      {retryAfterSeconds ? (
+        <Text className="mt-1 text-xs text-muted">
+          Retry after {retryAfterSeconds} seconds.
+        </Text>
+      ) : null}
+    </div>
+  );
+}
+
+function CardStackSkeleton() {
+  return (
+    <div className="relative h-[250px] w-full max-w-[430px]">
+      {Array.from({ length: 3 }).map((_, index) => (
+        <WidgetSkeleton
+          key={index}
+          className="absolute inset-x-0 top-0 h-[210px] rounded-card"
+          style={{
+            transform: `translate(${index * 18}px, ${index * 18}px)`,
+            zIndex: 3 - index,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function SelectedCardSkeleton() {
+  return (
+    <Card className="flex min-h-[320px] flex-col justify-between p-6">
+      <div>
+        <WidgetSkeleton className="h-4 w-20" />
+        <WidgetSkeleton className="mt-4 h-12 w-48" />
+      </div>
+      <div>
+        <div className="mb-3 flex items-center justify-between">
+          <WidgetSkeleton className="h-4 w-20" />
+          <WidgetSkeleton className="h-4 w-10" />
+        </div>
+        <WidgetSkeleton className="h-2 rounded-full" />
+        <div className="mt-6 flex items-end justify-between">
+          <div className="space-y-2">
+            <WidgetSkeleton className="h-4 w-24" />
+            <WidgetSkeleton className="h-4 w-20" />
+          </div>
+          <WidgetSkeleton className="h-6 w-16" />
+        </div>
+      </div>
+    </Card>
   );
 }

@@ -7,16 +7,30 @@ import Link from "next/link";
 import { QuickTransferCard } from "./QiuckTransferCard";
 import { WidgetEmptyState, WidgetSkeleton } from "./WidgetState";
 
+type SavingsSummary = {
+  savings: string;
+  savingsTrend: string;
+};
+
+type GoalItem = {
+  name: string;
+  saved: string;
+  target: string;
+  progress: number;
+};
+
 type BottomRowCardsProps = {
   isLoading?: boolean;
-  summary?: typeof dashboardSummary | null;
-  savingsGoals?: typeof goals;
+  summary?: SavingsSummary | null;
+  savingsGoals?: GoalItem[];
+  quickTransfers?: { initials: string }[];
 };
 
 export function BottomRowCards({
   isLoading = false,
   summary = dashboardSummary,
   savingsGoals = goals,
+  quickTransfers,
 }: BottomRowCardsProps) {
   const primaryGoal = savingsGoals[0];
 
@@ -87,7 +101,7 @@ export function BottomRowCards({
         </div>
       </Card>
 
-      <QuickTransferCard isLoading={isLoading} />
+      <QuickTransferCard isLoading={isLoading} transfers={quickTransfers} />
     </div>
   );
 }

@@ -3,9 +3,17 @@ import { Card } from "@/components/ui/Card";
 import { cards } from "@/lib/dashboard/mock-data";
 import { WidgetEmptyState, WidgetSkeleton } from "./WidgetState";
 
+type CreditCardItem = {
+  type: string;
+  balance: string;
+  lastFour: string;
+  expires: string;
+  network: string;
+};
+
 type CreditCardWidgetProps = {
   isLoading?: boolean;
-  userCards?: typeof cards;
+  userCards?: CreditCardItem[];
 };
 
 export function CreditCardWidget({

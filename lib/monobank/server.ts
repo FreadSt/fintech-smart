@@ -14,6 +14,7 @@ import type {
 
 type ServerSupabase = Awaited<ReturnType<typeof getServerSupabase>>;
 type AdminSupabase = ReturnType<typeof createAdminClient>;
+const STATEMENT_SYNC_COOLDOWN_SECONDS = 61;
 
 type MonobankClientInfo = {
   clientId: string;
@@ -137,7 +138,9 @@ export async function getMonobankOverview(
 
   const { data: accounts, error: accountsError } = await supabase
     .from("monobank_accounts")
-    .select("monobank_account_id,send_id,balance,credit_limit,currency_code,cashback_type,account_type,masked_pan,iban,is_default,is_visible,synced_at")
+    .select(
+      "monobank_account_id,send_id,balance,credit_limit,currency_code,cashback_type,account_type,masked_pan,iban,is_default,is_visible,synced_at",
+    )
     .eq("user_id", userId)
     .eq("is_visible", true)
     .order("is_default", { ascending: false })
@@ -149,7 +152,9 @@ export async function getMonobankOverview(
 
   const { data: jars, error: jarsError } = await supabase
     .from("monobank_jars")
-    .select("monobank_jar_id,title,description,balance,goal,currency_code,synced_at")
+    .select(
+      "monobank_jar_id,title,description,balance,goal,currency_code,synced_at",
+    )
     .eq("user_id", userId)
     .order("created_at", { ascending: true });
 
@@ -182,31 +187,12 @@ export async function connectMonobank(
   await upsertIntegration(admin, user.id, token, clientInfo, now);
   await upsertAccounts(admin, user.id, clientInfo.accounts, now);
   await upsertJars(admin, user.id, clientInfo.jars ?? [], now);
-  const transactionsSynced = await syncRecentStatements(
-    admin,
-    user.id,
-    token,
-    clientInfo.accounts,
-    now,
-  );
-
-  const { error: syncAtError } = await admin
-    .from("monobank_integrations")
-    .update({
-      last_statement_sync_at:
-        transactionsSynced > 0 ? new Date().toISOString() : null,
-    })
-    .eq("user_id", user.id);
-
-  if (syncAtError) {
-    throw new Error(syncAtError.message);
-  }
 
   return {
     clientName: clientInfo.name,
     accountsSynced: clientInfo.accounts.length,
     jarsSynced: clientInfo.jars?.length ?? 0,
-    transactionsSynced,
+    transactionsSynced: 0,
   };
 }
 
@@ -245,6 +231,61 @@ export async function getMonobankConnectionToken(
   return decrypt(data.access_token);
 }
 
+export async function getStatementRetryAfterSeconds(
+  supabase: ServerSupabase,
+  userId: string,
+): Promise<number> {
+  const { data, error } = await supabase
+    .from("monobank_integrations")
+    .select("last_client_info_sync_at,last_statement_sync_at")
+    .eq("user_id", userId)
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const lastRequestAt = [
+    data.last_client_info_sync_at,
+    data.last_statement_sync_at,
+  ]
+    .filter((value): value is string => Boolean(value))
+    .map((value) => new Date(value).getTime())
+    .sort((a, b) => b - a)[0];
+
+  if (!lastRequestAt) {
+    return 0;
+  }
+
+  const elapsedSeconds = Math.floor((Date.now() - lastRequestAt) / 1000);
+  return Math.max(0, STATEMENT_SYNC_COOLDOWN_SECONDS - elapsedSeconds);
+}
+
+export async function reserveStatementSync(userId: string): Promise<void> {
+  const admin = createAdminClient();
+  const now = new Date().toISOString();
+  const { error } = await admin
+    .from("monobank_integrations")
+    .update({ last_statement_sync_at: now })
+    .eq("user_id", userId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function markStatementSynced(userId: string): Promise<void> {
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("monobank_integrations")
+    .update({ last_statement_sync_at: new Date().toISOString() })
+    .eq("user_id", userId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 export async function assertMonobankAccountBelongsToUser(
   supabase: ServerSupabase,
   userId: string,
@@ -266,6 +307,31 @@ export async function assertMonobankAccountBelongsToUser(
   }
 }
 
+export async function getDefaultMonobankAccountId(
+  supabase: ServerSupabase,
+  userId: string,
+): Promise<string> {
+  const { data, error } = await supabase
+    .from("monobank_accounts")
+    .select("monobank_account_id")
+    .eq("user_id", userId)
+    .eq("is_visible", true)
+    .order("is_default", { ascending: false })
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!data) {
+    throw new MonobankRequestError("No Monobank account connected", 404);
+  }
+
+  return data.monobank_account_id;
+}
+
 export async function getCachedMonobankTransactions(
   supabase: ServerSupabase,
   userId: string,
@@ -275,7 +341,9 @@ export async function getCachedMonobankTransactions(
 ): Promise<MonobankTransaction[]> {
   let query = supabase
     .from("monobank_transactions")
-    .select("monobank_transaction_id,monobank_account_id,transaction_time,description,mcc,original_mcc,is_hold,amount,operation_amount,currency_code,commission_rate,cashback_amount,balance_after,comment,receipt_id,invoice_id,counter_edrpou,counter_iban,counter_name,synced_at,spending_category:spending_categories(slug,label,color_hex)")
+    .select(
+      "monobank_transaction_id,monobank_account_id,transaction_time,description,mcc,original_mcc,is_hold,amount,operation_amount,currency_code,commission_rate,cashback_amount,balance_after,comment,receipt_id,invoice_id,counter_edrpou,counter_iban,counter_name,synced_at,spending_category:spending_categories(slug,label,color_hex)",
+    )
     .eq("user_id", userId)
     .gte("transaction_time", new Date(from * 1000).toISOString())
     .lte("transaction_time", new Date(to * 1000).toISOString())
@@ -294,9 +362,21 @@ export async function getCachedMonobankTransactions(
   return ((data ?? []) as MonobankTransactionRow[]).map((transaction) => ({
     ...transaction,
     spending_category: Array.isArray(transaction.spending_category)
-      ? transaction.spending_category[0] ?? null
+      ? (transaction.spending_category[0] ?? null)
       : transaction.spending_category,
   }));
+}
+
+function buildMonobankStatementUrl(
+  accountId: string,
+  from: number,
+  to: number,
+): string {
+  if (!accountId.trim()) {
+    throw new MonobankRequestError("Monobank account id is required", 400);
+  }
+
+  return `https://api.monobank.ua/personal/statement/${encodeURIComponent(accountId)}/${from}/${to}`;
 }
 
 export async function fetchMonobankStatement(
@@ -305,10 +385,8 @@ export async function fetchMonobankStatement(
   from: number,
   to: number,
 ): Promise<MonobankStatementItem[]> {
-  const response = await monobankFetch(
-    `https://api.monobank.ua/personal/statement/${accountId}/${from}/${to}`,
-    token,
-  );
+  const statementUrl = buildMonobankStatementUrl(accountId, from, to);
+  const response = await monobankFetch(statementUrl, token);
 
   return (await response.json()) as MonobankStatementItem[];
 }
@@ -391,8 +469,7 @@ async function ensureProfile(
 ): Promise<void> {
   const { error } = await admin.from("profiles").upsert({
     id: user.id,
-    display_name:
-      user.user_metadata.full_name ?? user.email ?? clientInfo.name,
+    display_name: user.user_metadata.full_name ?? user.email ?? clientInfo.name,
     monobank_client_id: clientInfo.clientId,
     monobank_client_name: clientInfo.name,
   });
@@ -488,41 +565,6 @@ async function upsertJars(
   if (error) {
     throw new Error(error.message);
   }
-}
-
-async function syncRecentStatements(
-  admin: AdminSupabase,
-  userId: string,
-  token: string,
-  accounts: MonobankClientAccount[],
-  syncedAt: Date,
-): Promise<number> {
-  const to = Math.floor(Date.now() / 1000);
-  const from = to - 31 * 24 * 60 * 60;
-  let synced = 0;
-
-  for (const account of accounts) {
-    const statement = await fetchMonobankStatement(token, account.id, from, to);
-    const rows = statement.map((item) =>
-      toTransactionRow(userId, account.id, item, syncedAt.toISOString()),
-    );
-
-    if (rows.length === 0) {
-      continue;
-    }
-
-    const { error } = await admin
-      .from("monobank_transactions")
-      .upsert(rows, { onConflict: "user_id,monobank_transaction_id" });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    synced += rows.length;
-  }
-
-  return synced;
 }
 
 function toTransactionRow(

@@ -15,7 +15,13 @@ const tabs = ["All", "Income", "Spending"] as const;
 
 type Tab = (typeof tabs)[number];
 
-type Transaction = (typeof transactions)[number];
+type Transaction = {
+  name: string;
+  date: string;
+  amount: string;
+  positive: boolean;
+  initial: string;
+};
 
 type TransactionHistoryCardProps = {
   isLoading?: boolean;
