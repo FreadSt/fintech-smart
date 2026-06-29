@@ -125,7 +125,7 @@ export function DashboardNav() {
             onLinkClick={closeMobile}
           />
           {/*action={logoutAction} here */}
-          <form className="mt-2">
+          <form className="mt-2" action={logoutAction}>
             <Button
               type="submit"
               className="flex w-full disabled items-center justify-center rounded-full border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-foreground hover:bg-surface"
