@@ -102,7 +102,7 @@ export function AnalyticsPageClient() {
 
                   return (
                     <div key={monthlyBudget.labels[index]} className="flex flex-1 flex-col items-center gap-2">
-                      <div className="flex h-52 w-full flex-col justify-end rounded-2xl bg-surface-elevated/60">
+                      <div className="flex h-52 w-full flex-col justify-end gap-3 rounded-2xl bg-surface-elevated/60">
                         {visibleBudgetSegmentKeys.map((key) => {
                           const segmentIndex = budgetSegmentKeys.indexOf(key);
                           const legend = budgetLegend[segmentIndex];
@@ -115,7 +115,7 @@ export function AnalyticsPageClient() {
                           return (
                             <div
                               key={key}
-                              className={`group relative w-full ${budgetLegend[segmentIndex]?.colorClass ?? "bg-primary"}`}
+                              className={`group cursor-pointer rounded-lg relative w-full ${budgetLegend[segmentIndex]?.colorClass ?? "bg-primary"}`}
                               style={{ height: `${(height / max) * 100}%` }}
                               title={tooltip}
                             >
