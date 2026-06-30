@@ -1,4 +1,3 @@
-import type { BankCard } from "@/hooks/useBankCards";
 import {
   resolveMonobankCategoryFromMcc,
   shouldReplaceSpendingCategory,
@@ -9,9 +8,24 @@ import type {
   MonobankJar,
   MonobankTransaction,
 } from "@/lib/monobank/types";
-import type { Period } from "@/lib/dashboard/mock-data";
 
-type DashboardSummary = {
+export type Period = "daily" | "weekly" | "monthly";
+
+export type BankCard = {
+  id: string;
+  type: string;
+  balance: string;
+  lastFour: string;
+  expires: string;
+  network: string;
+  limit: string;
+  used: number;
+  variant: "primary" | "surface";
+  holder: string;
+  activities: unknown[];
+};
+
+export type DashboardSummary = {
   totalBalance: string;
   balanceTrend: string;
   balanceDelta: string;
@@ -23,7 +37,7 @@ type DashboardSummary = {
   savingsTrend: string;
 };
 
-type TransactionItem = {
+export type TransactionItem = {
   name: string;
   category: string;
   date: string;
@@ -34,7 +48,7 @@ type TransactionItem = {
   status: string;
 };
 
-type SpendingCategory = {
+export type SpendingCategory = {
   label: string;
   percentage: number;
   amount: string;
@@ -47,16 +61,16 @@ type CategoryAggregate = {
   color: string;
 };
 
-type BudgetEntry = {
+export type BudgetEntry = {
   income: number;
   spent: number;
   scheduled: number;
   savings: number;
 };
 
-type BudgetData = Record<Period, { labels: string[]; entries: BudgetEntry[] }>;
+export type BudgetData = Record<Period, { labels: string[]; entries: BudgetEntry[] }>;
 
-type GoalItem = {
+export type GoalItem = {
   name: string;
   saved: string;
   target: string;
@@ -106,6 +120,29 @@ export function toBankCard(
     holder: clientName ?? "Monobank",
     activities: [],
   };
+}
+
+export function getDefaultAccount(accounts: MonobankAccount[]): MonobankAccount | undefined {
+  return (
+    accounts.find((account) => account.is_default && account.balance > 0) ??
+    accounts.find((account) => account.balance > 0) ??
+    accounts[0]
+  );
+}
+
+export function getLastFour(maskedPan?: string): string {
+  return maskedPan?.replace(/\D/g, "").slice(-4).padStart(4, "0") ?? "0000";
+}
+
+export function getAccountLabel(account?: MonobankAccount): string {
+  if (!account) {
+    return "Unknown card";
+  }
+
+  const lastFour = account.masked_pan[0] ? getLastFour(account.masked_pan[0]) : "";
+  const suffix = lastFour ? ` *${lastFour}` : "";
+
+  return `${account.account_type} ${getCurrencyCode(account.currency_code)}${suffix}`;
 }
 
 export function buildDashboardSummary(
@@ -412,7 +449,7 @@ function getDominantCurrency(transactions: MonobankTransaction[]): number {
   return currencyCode ?? 980;
 }
 
-function getTransactionSpendingCategory(transaction: MonobankTransaction) {
+export function getTransactionSpendingCategory(transaction: MonobankTransaction) {
   const resolvedCategory = resolveMonobankCategoryFromMcc(
     transaction.mcc,
     transaction.original_mcc,
@@ -436,7 +473,7 @@ function getFallbackCategoryColor(label: string, index: number): string {
   return categoryColors[index] ?? "#e7e7e7";
 }
 
-function getInitial(value: string): string {
+export function getInitial(value: string): string {
   return value.trim().slice(0, 2).toUpperCase() || "TX";
 }
 
@@ -452,7 +489,7 @@ function getCardNetwork(maskedPan: string): string {
   return "MONO";
 }
 
-function formatDate(value: string): string {
+export function formatDate(value: string): string {
   return new Date(value).toLocaleDateString("uk-UA", {
     day: "2-digit",
     month: "short",

@@ -5,23 +5,35 @@ import { ArrowUpRight } from "lucide-react";
 import { Text } from "@/shared/text/Text";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
-import { budgetData, budgetLegend, type Period } from "@/lib/dashboard/mock-data";
 import { formatKopecks } from "@/lib/monobank/money";
+import type { BudgetData, Period } from "@/lib/monobank/view/dashboard";
 import { PeriodSelect } from "@/components/dashboard/widgets/PeriodSelect";
 import Link from "next/link";
 import { WidgetEmptyState, WidgetSkeleton } from "./WidgetState";
 const SEGMENT_KEYS = ['income', 'spent', 'scheduled', 'savings'] as const;
+const emptyBudgetData: BudgetData = {
+  daily: { labels: [], entries: [] },
+  weekly: { labels: [], entries: [] },
+  monthly: { labels: [], entries: [] },
+};
+const budgetLegend = [
+  { label: "Income", colorClass: "bg-primary" },
+  { label: "Spent", colorClass: "bg-[#9db800]" },
+  { label: "Scheduled", colorClass: "bg-[#6b7a00]" },
+  { label: "Savings", colorClass: "bg-accent-emerald" },
+];
+const skeletonLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
 
 type BudgetCardProps = {
   isLoading?: boolean;
   currencyCode?: number;
-  data?: typeof budgetData;
+  data?: BudgetData;
 };
 
 export function BudgetCard({
   currencyCode = 980,
   isLoading = false,
-  data = budgetData,
+  data = emptyBudgetData,
 }: BudgetCardProps) {
   const [period, setPeriod] = useState<Period>('monthly');
   const { labels, entries } = data[period];
@@ -113,7 +125,7 @@ function BudgetSkeleton() {
   return (
     <>
       <div className="flex h-44 items-end justify-between gap-3">
-        {budgetData.monthly.labels.map((label, index) => (
+        {skeletonLabels.map((label, index) => (
           <div key={label} className="flex flex-1 flex-col items-center gap-2">
             <div className="flex h-36 w-full items-end rounded-md bg-surface-elevated/60">
               <WidgetSkeleton

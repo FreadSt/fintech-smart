@@ -5,9 +5,10 @@ import { useState } from "react";
 import { Text } from "@/shared/text/Text";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
-import { balanceSparkline, dashboardSummary } from "@/lib/dashboard/mock-data";
 import Link from "next/link";
 import { WidgetEmptyState, WidgetSkeleton } from "./WidgetState";
+
+const skeletonSparkline = [28, 42, 36, 52, 44, 58, 48, 62, 54, 68];
 
 type BalanceSummary = {
   totalBalance: string;
@@ -40,8 +41,8 @@ export function TotalBalanceCard({
   balanceOptions = [],
   isLoading = false,
   selectedCard,
-  summary = dashboardSummary,
-  sparkline = balanceSparkline,
+  summary = null,
+  sparkline = [],
 }: TotalBalanceCardProps) {
   const [selectedCurrencyCode, setSelectedCurrencyCode] = useState(
     balanceOptions[0]?.currencyCode ?? 980,
@@ -50,7 +51,7 @@ export function TotalBalanceCard({
     balanceOptions.find(
       (option) => option.currencyCode === selectedCurrencyCode,
     ) ?? balanceOptions[0];
-  const hasData = Boolean(summary) && sparkline.length > 0;
+  const hasData = Boolean(summary) && (Boolean(selectedCard) || sparkline.length > 0);
 
   return (
     <Card
@@ -155,7 +156,7 @@ function TotalBalanceSkeleton() {
           <WidgetSkeleton className="h-7 w-24 rounded-full bg-black/15" />
         </div>
         <div className="flex h-16 items-end gap-1">
-          {balanceSparkline.map((height, index) => (
+          {skeletonSparkline.map((height, index) => (
             <WidgetSkeleton
               key={index}
               className="w-1.5 rounded-full bg-black/15"

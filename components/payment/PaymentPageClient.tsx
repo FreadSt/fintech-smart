@@ -6,15 +6,14 @@ import { WidgetEmptyState, WidgetSkeleton } from "@/components/dashboard/widgets
 import { Text } from "@/shared/text/Text";
 import { formatKopecks, getCurrencyCode } from "@/lib/monobank/money";
 import {
-  getDefaultStatementRange,
+  useDefaultStatementRange,
   useMonobankOverview,
   useMonobankTransactions,
 } from "@/components/cards/mono/useMonobankConnection";
 
-const range = getDefaultStatementRange();
-
 export function PaymentPageClient() {
   const overviewQuery = useMonobankOverview();
+  const range = useDefaultStatementRange();
   const transactionsQuery = useMonobankTransactions(range.from, range.to);
   const transactions = transactionsQuery.data?.transactions ?? [];
   const quickTransfers = [...new Set(
@@ -22,7 +21,7 @@ export function PaymentPageClient() {
       .map((transaction) => transaction.counter_name)
       .filter((name): name is string => Boolean(name)),
   )].slice(0, 3);
-  const scheduledPayments = transactions
+  const recentOutgoingPayments = transactions
     .filter((transaction) => transaction.amount < 0)
     .slice(0, 3);
   const isLoading = overviewQuery.isLoading || transactionsQuery.isLoading;
@@ -105,16 +104,16 @@ export function PaymentPageClient() {
 
       <Card className="p-6">
         <div className="mb-6 flex items-center justify-between">
-          <Text as="h2" className="text-lg font-semibold">Scheduled payments</Text>
+          <Text as="h2" className="text-lg font-semibold">Recent outgoing payments</Text>
           <CalendarClock className="size-5 text-primary" />
         </div>
         {isLoading ? (
           <GridSkeleton />
-        ) : scheduledPayments.length === 0 ? (
+        ) : recentOutgoingPayments.length === 0 ? (
           <WidgetEmptyState />
         ) : (
           <div className="grid gap-3 md:grid-cols-3">
-            {scheduledPayments.map((payment) => (
+            {recentOutgoingPayments.map((payment) => (
               <div key={payment.monobank_transaction_id} className="rounded-2xl bg-surface-elevated p-4">
                 <div className="flex items-center justify-between gap-3">
                   <Text className="font-medium">{payment.description}</Text>

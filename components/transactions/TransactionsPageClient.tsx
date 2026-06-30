@@ -10,41 +10,34 @@ import { cn } from "@/lib/utils/cn";
 import { formatKopecks, getCurrencyCode } from "@/lib/monobank/money";
 import type { MonobankAccount, MonobankTransaction } from "@/lib/monobank/types";
 import {
-  getDefaultStatementRange,
+  getAccountLabel,
+  getTransactionSpendingCategory,
+  formatDate,
+} from "@/lib/monobank/view/dashboard";
+import {
+  useDefaultStatementRange,
   useMonobankOverview,
+  useSelectedMonobankAccount,
   useMonobankTransactions,
 } from "@/components/cards/mono/useMonobankConnection";
 
-const range = getDefaultStatementRange();
 const emptyAccounts: MonobankAccount[] = [];
 const emptyTransactions: MonobankTransaction[] = [];
 
 export function TransactionsPageClient() {
   const overviewQuery = useMonobankOverview();
+  const range = useDefaultStatementRange();
   const accounts = overviewQuery.data?.accounts ?? emptyAccounts;
-  const [selectedAccountId, setSelectedAccountId] = useState(() => {
-    if (typeof window === "undefined") {
-      return "";
-    }
-
-    return window.localStorage.getItem("finflex:selected-monobank-card") ?? "";
-  });
+  const selectedAccount = useSelectedMonobankAccount(accounts);
   const [transactionSearch, setTransactionSearch] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
-  const defaultAccount =
-    accounts.find((account) => account.is_default && account.balance > 0) ??
-    accounts.find((account) => account.balance > 0) ??
-    accounts[0];
-  const activeAccountId =
-    accounts.some((account) => account.monobank_account_id === selectedAccountId)
-      ? selectedAccountId
-      : (defaultAccount?.monobank_account_id ?? "");
-  const activeAccount = accounts.find(
-    (account) => account.monobank_account_id === activeAccountId,
-  );
+  const activeAccountId = selectedAccount.activeAccountId;
+  const activeAccount = selectedAccount.activeAccount;
   const { data, error, isLoading } = useMonobankTransactions(
     range.from,
     range.to,
+    activeAccountId,
+    { enabled: Boolean(activeAccountId) },
   );
   const transactions = data?.transactions ?? emptyTransactions;
   const visibleTransactions = useMemo(
@@ -58,8 +51,7 @@ export function TransactionsPageClient() {
   );
 
   function handleAccountSelected(accountId: string) {
-    window.localStorage.setItem("finflex:selected-monobank-card", accountId);
-    setSelectedAccountId(accountId);
+    selectedAccount.setSelectedAccountId(accountId);
     setPickerOpen(false);
   }
 
@@ -169,9 +161,9 @@ export function TransactionsPageClient() {
                     )}
                   </div>
                   <div>
-                    <Text className="font-medium">{transaction.description}</Text>
+                <Text className="font-medium">{transaction.description}</Text>
                     <Text className="text-sm text-muted">
-                      {transaction.spending_category?.label ?? "Other"} / {formatDate(transaction.transaction_time)}
+                      {getTransactionSpendingCategory(transaction)?.label ?? "Other"} / {formatDate(transaction.transaction_time)}
                     </Text>
                   </div>
                 </div>
@@ -204,18 +196,6 @@ export function TransactionsPageClient() {
     </div>
   );
 }
-
-function getAccountLabel(account?: MonobankAccount): string {
-  if (!account) {
-    return "Unknown card";
-  }
-
-  const lastFour = account.masked_pan[0]?.slice(-4);
-  const suffix = lastFour ? ` *${lastFour}` : "";
-
-  return `${account.account_type} ${getCurrencyCode(account.currency_code)}${suffix}`;
-}
-
 function matchesTransactionSearch(
   transaction: MonobankTransaction,
   query: string,
@@ -235,20 +215,19 @@ function matchesTransactionSearch(
     transaction.invoice_id,
     transaction.counter_edrpou,
     transaction.counter_iban,
-    transaction.spending_category?.label,
+    getTransactionSpendingCategory(transaction)?.label,
     transaction.is_hold ? "hold" : "completed",
     formatDate(transaction.transaction_time),
     formatKopecks(transaction.amount, transaction.currency_code),
     String(transaction.amount / 100),
     String(Math.abs(transaction.amount) / 100),
-    getAccountLabel(account),
+    account ? getAccountLabel(account) : getCurrencyCode(transaction.currency_code),
   ];
 
   return searchableValues.some((value) =>
     value?.toLowerCase().includes(normalizedQuery),
   );
 }
-
 function TransactionsSkeleton() {
   return (
     <div className="space-y-0 p-5">
@@ -271,11 +250,4 @@ function TransactionsSkeleton() {
       ))}
     </div>
   );
-}
-
-function formatDate(value: string): string {
-  return new Date(value).toLocaleDateString("uk-UA", {
-    day: "2-digit",
-    month: "short",
-  });
 }

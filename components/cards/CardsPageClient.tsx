@@ -11,62 +11,48 @@ import { Button } from "@/shared/button/Button";
 import { Input } from "@/shared/input/Input";
 import { Modal } from "@/shared/modal/Modal";
 import { Text } from "@/shared/text/Text";
-import type { BankCard } from "@/hooks/useBankCards";
 import { cn } from "@/lib/utils/cn";
 import { MonobankApiError } from "@/lib/monobank/client";
 import { formatKopecks } from "@/lib/monobank/money";
 import type { MonobankTransaction } from "@/lib/monobank/types";
-import { toBankCard } from "@/lib/monobank/view/dashboard";
 import {
-  getDefaultStatementRange,
+  getTransactionSpendingCategory,
+  toBankCard,
+  type BankCard,
+} from "@/lib/monobank/view/dashboard";
+import {
+  useDefaultStatementRange,
   useConnectMonobank,
   useMonobankOverview,
+  useSelectedMonobankAccount,
   useMonobankTransactions,
 } from "./mono/useMonobankConnection";
 
-const range = getDefaultStatementRange();
 const emptyTransactions: MonobankTransaction[] = [];
 
 export function CardsPageClient() {
   const overviewQuery = useMonobankOverview();
   const connectMutation = useConnectMonobank();
+  const range = useDefaultStatementRange();
   const [connectModalOpen, setConnectModalOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [token, setToken] = useState("");
-  const [selectedCardId, setSelectedCardId] = useState(() => {
-    if (typeof window === "undefined") {
-      return "";
-    }
-
-    return window.localStorage.getItem("finflex:selected-monobank-card") ?? "";
-  });
+  const accounts = overviewQuery.data?.accounts ?? [];
+  const selectedAccount = useSelectedMonobankAccount(accounts);
   const bankCards = (overviewQuery.data?.accounts ?? []).map((account, index) =>
     toBankCard(account, index, overviewQuery.data?.connection?.client_name),
   );
-  const defaultAccount =
-    overviewQuery.data?.accounts.find(
-      (account) => account.is_default && account.balance > 0,
-    ) ??
-    overviewQuery.data?.accounts.find((account) => account.balance > 0) ??
-    overviewQuery.data?.accounts[0];
-  const activeCardId =
-    bankCards.some((card) => card.id === selectedCardId)
-      ? selectedCardId
-      : (defaultAccount?.monobank_account_id ?? bankCards[0]?.id ?? "");
+  const activeCardId = selectedAccount.activeAccountId;
   const selectedCard =
     bankCards.find((card) => card.id === activeCardId) ?? bankCards[0];
   const transactionsQuery = useMonobankTransactions(
     range.from,
     range.to,
+    activeCardId,
+    { enabled: Boolean(activeCardId) },
   );
   const transactions = transactionsQuery.data?.transactions ?? emptyTransactions;
-  const recentTransactions = useMemo(
-    () =>
-      transactions
-        .filter((transaction) => transaction.monobank_account_id === activeCardId)
-        .slice(0, 6),
-    [activeCardId, transactions],
-  );
+  const recentTransactions = useMemo(() => transactions.slice(0, 6), [transactions]);
 
   function handleConnect(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -74,15 +60,13 @@ export function CardsPageClient() {
       onSuccess: () => {
         setToken("");
         setConnectModalOpen(false);
-        window.localStorage.removeItem("finflex:selected-monobank-card");
-        setSelectedCardId("");
+        selectedAccount.setSelectedAccountId("");
       },
     });
   }
 
   function handleCardSelected(cardId: string) {
-    window.localStorage.setItem("finflex:selected-monobank-card", cardId);
-    setSelectedCardId(cardId);
+    selectedAccount.setSelectedAccountId(cardId);
     setPickerOpen(false);
   }
 
@@ -137,13 +121,13 @@ export function CardsPageClient() {
       <div className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
         <Card className="p-6">
           <div className="mb-5 flex items-center justify-between">
-            <Text as="h2" className="text-lg font-semibold">Protection</Text>
+            <Text as="h2" className="text-lg font-semibold">Card details</Text>
             <ShieldCheck className="size-5 text-primary" />
           </div>
           <div className="space-y-3 text-sm">
             <div className="flex items-center justify-between rounded-2xl bg-surface-elevated p-4">
-              <Text as="span" className="text-muted">Online payments</Text>
-              <Text as="span">Enabled</Text>
+              <Text as="span" className="text-muted">Provider</Text>
+              <Text as="span">{selectedCard?.holder ?? "Monobank"}</Text>
             </div>
             <div className="flex items-center justify-between rounded-2xl bg-surface-elevated p-4">
               <Text as="span" className="text-muted">Daily limit</Text>
@@ -397,12 +381,20 @@ function RecentCardActivity({
           className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"
         >
           <div className="min-w-0">
+            {(() => {
+              const spendingCategory = getTransactionSpendingCategory(transaction);
+
+              return (
+                <>
             <Text className="truncate text-sm font-medium">
               {transaction.description}
             </Text>
             <Text className="text-xs text-muted">
-              {transaction.spending_category?.label ?? "Other"} / {formatActivityDate(transaction.transaction_time)}
+                    {spendingCategory?.label ?? "Other"} / {formatActivityDate(transaction.transaction_time)}
             </Text>
+                </>
+              );
+            })()}
           </div>
           <Text
             className={cn(

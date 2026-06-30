@@ -2,7 +2,6 @@ import { ArrowUpRight, TrendingDown, TrendingUp } from "lucide-react";
 import { Text } from "@/shared/text/Text";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
-import { dashboardSummary } from "@/lib/dashboard/mock-data";
 import Link from "next/link";
 import { WidgetEmptyState, WidgetSkeleton } from "./WidgetState";
 
@@ -48,7 +47,7 @@ type IncomeExpenseCardsProps = {
 
 export function IncomeExpenseCards({
   isLoading = false,
-  summary = dashboardSummary,
+  summary = null,
 }: IncomeExpenseCardsProps) {
   return (
     <div className="flex h-full flex-col">

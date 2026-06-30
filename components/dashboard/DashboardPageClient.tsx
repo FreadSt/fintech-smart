@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { BottomRowCards } from "@/components/dashboard/widgets/BottomRowCards";
 import { BudgetCard } from "@/components/dashboard/widgets/BudgetCard";
 import { CreditCardWidget } from "@/components/dashboard/widgets/CreditCardWidget";
@@ -8,22 +7,8 @@ import { IncomeExpenseCards } from "@/components/dashboard/widgets/IncomeExpense
 import { TopSpendingCard } from "@/components/dashboard/widgets/TopSpendingCard";
 import { TotalBalanceCard } from "@/components/dashboard/widgets/TotalBalanceCard";
 import { TransactionHistoryCard } from "@/components/dashboard/widgets/TransactionHistoryCard";
-import {
-  getDefaultStatementRange,
-  useMonobankOverview,
-  useMonobankTransactions,
-} from "@/components/cards/mono/useMonobankConnection";
-import {
-  buildBudgetData,
-  buildDashboardSummary,
-  buildSpendingCategories,
-  getBudgetCurrencyCode,
-  toBankCard,
-  toGoalItems,
-  toQuickTransfers,
-  toTransactionItems,
-} from "@/lib/monobank/view/dashboard";
-import type { Period } from "@/lib/dashboard/mock-data";
+import { useMonobankDashboardData } from "@/components/cards/mono/useMonobankConnection";
+import type { Period } from "@/lib/monobank/view/dashboard";
 import { formatKopecks, getCurrencyCode } from "@/lib/monobank/money";
 
 const emptyBudgetData: Record<Period, { labels: string[]; entries: [] }> = {
@@ -33,34 +18,23 @@ const emptyBudgetData: Record<Period, { labels: string[]; entries: [] }> = {
 };
 
 export function DashboardPageClient() {
-  const [selectedCardId] = useState(() => {
-    if (typeof window === "undefined") {
-      return "";
-    }
-
-    return window.localStorage.getItem("finflex:selected-monobank-card") ?? "";
-  });
-  const overviewQuery = useMonobankOverview();
-  const range = getDefaultStatementRange();
-  const transactionsQuery = useMonobankTransactions(range.from, range.to);
-  const overview = overviewQuery.data;
-  const transactions = transactionsQuery.data?.transactions ?? [];
-  const isLoading = overviewQuery.isLoading || transactionsQuery.isLoading;
-  const summary = overview
-    ? buildDashboardSummary(overview.accounts, overview.jars, transactions)
-    : null;
-  const bankCards = (overview?.accounts ?? []).map((account, index) =>
-    toBankCard(account, index, overview?.connection?.client_name),
-  );
+  const {
+    bankCards,
+    budget,
+    budgetCurrencyCode,
+    goals,
+    isLoading,
+    overview,
+    quickTransfers,
+    selectedAccount,
+    spending,
+    summary,
+    transactionItems,
+  } = useMonobankDashboardData();
   const selectedCard =
-    bankCards.find((card) => card.id === selectedCardId) ?? bankCards[0];
+    bankCards.find((card) => card.id === selectedAccount.activeAccountId) ??
+    bankCards[0];
   const balanceOptions = buildBalanceOptions(overview?.accounts ?? []);
-  const spending = buildSpendingCategories(transactions);
-  const budgetData = buildBudgetData(transactions);
-  const budgetCurrencyCode = getBudgetCurrencyCode(transactions);
-  const goals = toGoalItems(overview?.jars ?? []);
-  const transactionItems = toTransactionItems(transactions);
-  const quickTransfers = toQuickTransfers(transactions);
 
   return (
     <div className="grid grid-cols-1 gap-4 xl:grid-cols-12 xl:grid-rows-[auto_auto_auto] xl:gap-5">
@@ -92,7 +66,7 @@ export function DashboardPageClient() {
         <BudgetCard
           isLoading={isLoading}
           currencyCode={budgetCurrencyCode}
-          data={budgetData ?? emptyBudgetData}
+          data={budget ?? emptyBudgetData}
         />
       </div>
       <div className="xl:col-span-3 xl:row-start-2">

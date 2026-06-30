@@ -2,9 +2,8 @@ import { ArrowUpRight, TrendingUp } from "lucide-react";
 import { Text } from "@/shared/text/Text";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
-import { dashboardSummary, goals } from "@/lib/dashboard/mock-data";
 import Link from "next/link";
-import { QuickTransferCard } from "./QiuckTransferCard";
+import { QuickTransferCard } from "./QuickTransferCard";
 import { WidgetEmptyState, WidgetSkeleton } from "./WidgetState";
 
 type SavingsSummary = {
@@ -28,8 +27,8 @@ type BottomRowCardsProps = {
 
 export function BottomRowCards({
   isLoading = false,
-  summary = dashboardSummary,
-  savingsGoals = goals,
+  summary = null,
+  savingsGoals = [],
   quickTransfers,
 }: BottomRowCardsProps) {
   const primaryGoal = savingsGoals[0];
@@ -44,7 +43,7 @@ export function BottomRowCards({
           </IconButton>
         </Link>
       }>
-        <Text as="h2" className="mb-2 text-lg font-semibold">Top spending</Text>
+        <Text as="h2" className="mb-2 text-lg font-semibold">Savings progress</Text>
         <div className="grid grid-cols-2 gap-3">
           <Card className=" overflow-hidden p-0">
             {isLoading ? (

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { Button } from "@/shared/button/Button";
-import type { Period } from "@/lib/dashboard/mock-data";
+import type { Period } from "@/lib/monobank/view/dashboard";
 import { DropdownMenu, DropdownMenuItem } from "@/shared/menu-dropdown/DropdownMenu";
 
 const PERIOD_LABELS: Record<Period, string> = {

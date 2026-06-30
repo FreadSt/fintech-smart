@@ -6,16 +6,15 @@ import { WidgetEmptyState, WidgetSkeleton } from "@/components/dashboard/widgets
 import { Text } from "@/shared/text/Text";
 import { formatKopecks } from "@/lib/monobank/money";
 import {
-  getDefaultStatementRange,
+  useDefaultStatementRange,
   useMonobankOverview,
   useMonobankTransactions,
 } from "@/components/cards/mono/useMonobankConnection";
 import { toGoalItems } from "@/lib/monobank/view/dashboard";
 
-const range = getDefaultStatementRange();
-
 export function PlanPageClient() {
   const overviewQuery = useMonobankOverview();
+  const range = useDefaultStatementRange();
   const transactionsQuery = useMonobankTransactions(range.from, range.to);
   const goals = toGoalItems(overviewQuery.data?.jars ?? []);
   const savingsByCurrency = new Map<number, number>();
@@ -30,7 +29,7 @@ export function PlanPageClient() {
   const savingsBalance = [...savingsByCurrency.entries()]
     .map(([currencyCode, amount]) => formatKopecks(amount, currencyCode))
     .join(" / ");
-  const obligations = (transactionsQuery.data?.transactions ?? [])
+  const recentObligations = (transactionsQuery.data?.transactions ?? [])
     .filter((transaction) => transaction.amount < 0)
     .slice(0, 2);
   const isLoading = overviewQuery.isLoading || transactionsQuery.isLoading;
@@ -79,7 +78,7 @@ export function PlanPageClient() {
 
         <Card className="p-6">
           <div className="mb-6 flex items-center justify-between">
-            <Text as="h2" className="text-lg font-semibold">Monthly allocation</Text>
+            <Text as="h2" className="text-lg font-semibold">Savings by jar</Text>
             <TrendingUp className="size-5 text-secondary" />
           </div>
           {isLoading ? (
@@ -112,16 +111,16 @@ export function PlanPageClient() {
         </Card>
         <Card className="p-6">
           <div className="mb-5 flex items-center justify-between">
-            <Text as="h2" className="text-lg font-semibold">Upcoming obligations</Text>
+            <Text as="h2" className="text-lg font-semibold">Recent obligations</Text>
             <CalendarDays className="size-5 text-primary" />
           </div>
           {isLoading ? (
             <ListSkeleton />
-          ) : obligations.length === 0 ? (
+          ) : recentObligations.length === 0 ? (
             <WidgetEmptyState />
           ) : (
             <div className="space-y-3">
-              {obligations.map((payment) => (
+              {recentObligations.map((payment) => (
                 <div key={payment.monobank_transaction_id} className="flex items-center justify-between text-sm">
                   <Text as="span" className="text-muted">{payment.description}</Text>
                   <Text as="span">{formatKopecks(payment.amount, payment.currency_code)}</Text>

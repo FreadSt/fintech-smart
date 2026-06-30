@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { WidgetEmptyState, WidgetSkeleton } from "@/components/dashboard/widgets/WidgetState";
 import { Text } from "@/shared/text/Text";
 import {
-  getDefaultStatementRange,
+  useDefaultStatementRange,
   useMonobankOverview,
   useMonobankTransactions,
 } from "@/components/cards/mono/useMonobankConnection";
@@ -16,14 +16,19 @@ import {
   buildSpendingCategories,
   getBudgetCurrencyCode,
 } from "@/lib/monobank/view/dashboard";
-import { budgetLegend } from "@/lib/dashboard/mock-data";
 import { formatKopecks } from "@/lib/monobank/money";
 
-const range = getDefaultStatementRange();
 const budgetSegmentKeys = ["income", "spent", "scheduled", "savings"] as const;
+const budgetLegend = [
+  { label: "Income", colorClass: "bg-primary" },
+  { label: "Spent", colorClass: "bg-[#9db800]" },
+  { label: "Scheduled", colorClass: "bg-[#6b7a00]" },
+  { label: "Savings", colorClass: "bg-accent-emerald" },
+];
 
 export function AnalyticsPageClient() {
   const overviewQuery = useMonobankOverview();
+  const range = useDefaultStatementRange();
   const transactionsQuery = useMonobankTransactions(range.from, range.to);
   const transactions = transactionsQuery.data?.transactions ?? [];
   const summary = overviewQuery.data

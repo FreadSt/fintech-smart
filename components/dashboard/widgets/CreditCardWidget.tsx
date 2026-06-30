@@ -1,6 +1,5 @@
 import { Text } from "@/shared/text/Text";
 import { Card } from "@/components/ui/Card";
-import { cards } from "@/lib/dashboard/mock-data";
 import { WidgetEmptyState, WidgetSkeleton } from "./WidgetState";
 
 type CreditCardItem = {
@@ -18,7 +17,7 @@ type CreditCardWidgetProps = {
 
 export function CreditCardWidget({
   isLoading = false,
-  userCards = cards,
+  userCards = [],
 }: CreditCardWidgetProps) {
   const primaryCard = userCards[0];
 

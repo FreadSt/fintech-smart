@@ -5,7 +5,6 @@ import { RefreshCw } from "lucide-react";
 import { Text } from "@/shared/text/Text";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
-import { quickTransfers } from "@/lib/dashboard/mock-data";
 import { WidgetEmptyState, WidgetSkeleton } from "./WidgetState";
 
 interface QuickTransfer {
@@ -19,7 +18,7 @@ interface QuickTransferCardProps {
 }
 
 export function QuickTransferCard({
-  transfers = quickTransfers,
+  transfers = [],
   isLoading = false,
   refreshDuration = 1800,
 }: QuickTransferCardProps) {
@@ -49,7 +48,7 @@ export function QuickTransferCard({
       <Text className="mb-6 text-sm text-muted">Quick Transfer</Text>
       {isLoading || isRefreshing ? (
         <div className="flex justify-around gap-3">
-          {quickTransfers.map((_, index) => (
+          {Array.from({ length: 4 }).map((_, index) => (
             <WidgetSkeleton
               key={index}
               className="size-15 rounded-full"

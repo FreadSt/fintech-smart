@@ -6,7 +6,6 @@ import { Button } from "@/shared/button/Button";
 import { Text } from "@/shared/text/Text";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
-import { transactions } from "@/lib/dashboard/mock-data";
 import { cn } from "@/lib/utils/cn";
 import Link from "next/link";
 import { WidgetEmptyState, WidgetSkeleton } from "./WidgetState";
@@ -30,7 +29,7 @@ type TransactionHistoryCardProps = {
 
 export function TransactionHistoryCard({
   isLoading = false,
-  items = transactions,
+  items = [],
 }: TransactionHistoryCardProps) {
   const [activeTab, setActiveTab] = useState<Tab>("All");
   const visibleTransactions = items.filter((transaction) => {
@@ -47,7 +46,7 @@ export function TransactionHistoryCard({
 
   return (
     <Card
-      className="flex h-full flex-col p-6"
+      className="flex h-full flex-col p-6 overflow-y-auto"
       headerAction={
         <Link href="/transactions">
         <IconButton 
@@ -119,8 +118,8 @@ export function TransactionHistoryCard({
 function TransactionHistorySkeleton() {
   return (
     <div className="flex flex-1 flex-col gap-4">
-      {transactions.map((transaction) => (
-        <div key={transaction.name} className="flex items-center justify-between gap-3">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <div key={index} className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <WidgetSkeleton className="size-10 rounded-2xl" />
             <div className="space-y-2">

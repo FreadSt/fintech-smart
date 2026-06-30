@@ -2,13 +2,11 @@ import { ArrowUpRight } from "lucide-react";
 import { Text } from "@/shared/text/Text";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
-import { spendingCategories, spendingTotal } from "@/lib/dashboard/mock-data";
+import type { SpendingCategory } from "@/lib/monobank/view/dashboard";
 import Link from "next/link";
 import { WidgetEmptyState, WidgetSkeleton } from "./WidgetState";
 
 const segmentGap = 5;
-
-type SpendingCategory = (typeof spendingCategories)[number];
 
 function getSpendingArcs(categories: SpendingCategory[]) {
   const availableAngle = 180 - segmentGap * (categories.length - 1);
@@ -45,8 +43,8 @@ type TopSpendingCardProps = {
 
 export function TopSpendingCard({
   isLoading = false,
-  categories = spendingCategories,
-  total = spendingTotal,
+  categories = [],
+  total = "No Data yet",
 }: TopSpendingCardProps) {
   const spendingArcs = getSpendingArcs(categories);
 
@@ -133,8 +131,8 @@ function TopSpendingSkeleton() {
       <WidgetSkeleton className="mx-auto mb-6 h-24 w-44 rounded-t-full" />
       <WidgetSkeleton className="mx-auto mb-3 h-8 w-24" />
       <div className="space-y-2">
-        {spendingCategories.map((category) => (
-          <div key={category.label} className="flex items-center justify-between">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div key={index} className="flex items-center justify-between">
             <WidgetSkeleton className="h-4 w-28" />
             <WidgetSkeleton className="h-4 w-8" />
           </div>
