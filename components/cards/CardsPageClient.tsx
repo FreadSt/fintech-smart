@@ -1,7 +1,7 @@
 "use client";
 
 import { CreditCard, Link2, RefreshCw, ShieldCheck } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { Card } from "@/components/ui/Card";
 import {
   WidgetEmptyState,
@@ -14,11 +14,18 @@ import { Text } from "@/shared/text/Text";
 import type { BankCard } from "@/hooks/useBankCards";
 import { cn } from "@/lib/utils/cn";
 import { MonobankApiError } from "@/lib/monobank/client";
+import { formatKopecks } from "@/lib/monobank/money";
+import type { MonobankTransaction } from "@/lib/monobank/types";
 import { toBankCard } from "@/lib/monobank/view/dashboard";
 import {
+  getDefaultStatementRange,
   useConnectMonobank,
   useMonobankOverview,
+  useMonobankTransactions,
 } from "./mono/useMonobankConnection";
+
+const range = getDefaultStatementRange();
+const emptyTransactions: MonobankTransaction[] = [];
 
 export function CardsPageClient() {
   const overviewQuery = useMonobankOverview();
@@ -36,9 +43,30 @@ export function CardsPageClient() {
   const bankCards = (overviewQuery.data?.accounts ?? []).map((account, index) =>
     toBankCard(account, index, overviewQuery.data?.connection?.client_name),
   );
-  const activeCardId = selectedCardId || bankCards[0]?.id || "";
+  const defaultAccount =
+    overviewQuery.data?.accounts.find(
+      (account) => account.is_default && account.balance > 0,
+    ) ??
+    overviewQuery.data?.accounts.find((account) => account.balance > 0) ??
+    overviewQuery.data?.accounts[0];
+  const activeCardId =
+    bankCards.some((card) => card.id === selectedCardId)
+      ? selectedCardId
+      : (defaultAccount?.monobank_account_id ?? bankCards[0]?.id ?? "");
   const selectedCard =
     bankCards.find((card) => card.id === activeCardId) ?? bankCards[0];
+  const transactionsQuery = useMonobankTransactions(
+    range.from,
+    range.to,
+  );
+  const transactions = transactionsQuery.data?.transactions ?? emptyTransactions;
+  const recentTransactions = useMemo(
+    () =>
+      transactions
+        .filter((transaction) => transaction.monobank_account_id === activeCardId)
+        .slice(0, 6),
+    [activeCardId, transactions],
+  );
 
   function handleConnect(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -126,7 +154,15 @@ export function CardsPageClient() {
 
         <Card className="p-6">
           <Text as="h2" className="mb-5 text-lg font-semibold">Recent card activity</Text>
-          <WidgetEmptyState className="min-h-36" />
+          {transactionsQuery.isLoading ? (
+            <RecentActivitySkeleton />
+          ) : transactionsQuery.error ? (
+            <ErrorPanel error={transactionsQuery.error} />
+          ) : recentTransactions.length === 0 ? (
+            <WidgetEmptyState className="min-h-36" />
+          ) : (
+            <RecentCardActivity transactions={recentTransactions} />
+          )}
         </Card>
       </div>
 
@@ -346,6 +382,64 @@ function ErrorPanel({ error }: { error: Error }) {
       ) : null}
     </div>
   );
+}
+
+function RecentCardActivity({
+  transactions,
+}: {
+  transactions: MonobankTransaction[];
+}) {
+  return (
+    <div className="divide-y divide-border">
+      {transactions.map((transaction) => (
+        <div
+          key={transaction.monobank_transaction_id}
+          className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"
+        >
+          <div className="min-w-0">
+            <Text className="truncate text-sm font-medium">
+              {transaction.description}
+            </Text>
+            <Text className="text-xs text-muted">
+              {transaction.spending_category?.label ?? "Other"} / {formatActivityDate(transaction.transaction_time)}
+            </Text>
+          </div>
+          <Text
+            className={cn(
+              "shrink-0 text-sm font-semibold",
+              transaction.amount > 0 && "text-accent-emerald",
+              transaction.amount < 0 && "text-red-400",
+            )}
+          >
+            {formatKopecks(transaction.amount, transaction.currency_code)}
+          </Text>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RecentActivitySkeleton() {
+  return (
+    <div className="space-y-4">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <div key={index} className="flex items-center justify-between gap-4">
+          <div className="space-y-2">
+            <WidgetSkeleton className="h-4 w-36" />
+            <WidgetSkeleton className="h-3 w-24" />
+          </div>
+          <WidgetSkeleton className="h-4 w-20" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function formatActivityDate(value: string): string {
+  return new Date(value).toLocaleDateString("uk-UA", {
+    day: "2-digit",
+    month: "short",
+  });
 }
 
 function CardStackSkeleton() {

@@ -18,13 +18,13 @@ export async function proxy(request: NextRequest) {
   const isAuthenticated = hasSupabaseAuthCookie(request);
   const isAuthPage = pathname === "/login" || pathname === "/signup";
 
-  // if (isProtectedRoute(pathname) && !isAuthenticated) {
-  //   return NextResponse.redirect(new URL("/login", request.url));
-  // }
+  if (isProtectedRoute(pathname) && !isAuthenticated) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
 
-  // if (isAuthPage && isAuthenticated) {
-  //   return NextResponse.redirect(new URL("/", request.url));
-  // }
+  if (isAuthPage && isAuthenticated) {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
 
   return NextResponse.next();
 }

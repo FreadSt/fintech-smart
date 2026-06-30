@@ -1,30 +1,139 @@
 "use client";
 
-import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, ChevronDown, Search } from "lucide-react";
+import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { WidgetEmptyState, WidgetSkeleton } from "@/components/dashboard/widgets/WidgetState";
+import { Input } from "@/shared/input/Input";
 import { Text } from "@/shared/text/Text";
 import { cn } from "@/lib/utils/cn";
-import { formatKopecks } from "@/lib/monobank/money";
+import { formatKopecks, getCurrencyCode } from "@/lib/monobank/money";
+import type { MonobankAccount, MonobankTransaction } from "@/lib/monobank/types";
 import {
   getDefaultStatementRange,
+  useMonobankOverview,
   useMonobankTransactions,
 } from "@/components/cards/mono/useMonobankConnection";
 
 const range = getDefaultStatementRange();
+const emptyAccounts: MonobankAccount[] = [];
+const emptyTransactions: MonobankTransaction[] = [];
 
 export function TransactionsPageClient() {
+  const overviewQuery = useMonobankOverview();
+  const accounts = overviewQuery.data?.accounts ?? emptyAccounts;
+  const [selectedAccountId, setSelectedAccountId] = useState(() => {
+    if (typeof window === "undefined") {
+      return "";
+    }
+
+    return window.localStorage.getItem("finflex:selected-monobank-card") ?? "";
+  });
+  const [transactionSearch, setTransactionSearch] = useState("");
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const defaultAccount =
+    accounts.find((account) => account.is_default && account.balance > 0) ??
+    accounts.find((account) => account.balance > 0) ??
+    accounts[0];
+  const activeAccountId =
+    accounts.some((account) => account.monobank_account_id === selectedAccountId)
+      ? selectedAccountId
+      : (defaultAccount?.monobank_account_id ?? "");
+  const activeAccount = accounts.find(
+    (account) => account.monobank_account_id === activeAccountId,
+  );
   const { data, error, isLoading } = useMonobankTransactions(
     range.from,
     range.to,
   );
-  const transactions = data?.transactions ?? [];
+  const transactions = data?.transactions ?? emptyTransactions;
+  const visibleTransactions = useMemo(
+    () =>
+      transactions.filter(
+        (transaction) =>
+          transaction.monobank_account_id === activeAccountId &&
+          matchesTransactionSearch(transaction, transactionSearch, activeAccount),
+      ),
+    [activeAccount, activeAccountId, transactionSearch, transactions],
+  );
+
+  function handleAccountSelected(accountId: string) {
+    window.localStorage.setItem("finflex:selected-monobank-card", accountId);
+    setSelectedAccountId(accountId);
+    setPickerOpen(false);
+  }
 
   return (
     <div className="space-y-5">
-      <div>
-        <Text className="text-sm text-muted">Activity</Text>
-        <Text as="h1" className="text-2xl font-semibold tracking-tight">Transactions</Text>
+      <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-end">
+        <div>
+          <Text className="text-sm text-muted">Activity</Text>
+          <Text as="h1" className="text-2xl font-semibold tracking-tight">Transactions</Text>
+        </div>
+        <div className="flex w-full flex-col gap-2 sm:flex-row lg:max-w-2xl">
+          <div className="flex items-center gap-2 rounded-2xl border border-border bg-surface-elevated px-3 py-2">
+            <Search className="size-4 text-muted" />
+            <Input
+              aria-label="Search transactions"
+              className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted"
+              placeholder="Search transactions"
+              value={transactionSearch}
+              onChange={(event) => setTransactionSearch(event.target.value)}
+            />
+          </div>
+          <div className="relative sm:w-72">
+            <button
+              className="flex h-full min-h-10 w-full items-center justify-between gap-3 rounded-2xl border border-border bg-surface-elevated px-3 py-2 text-left text-sm"
+              type="button"
+              onClick={() => setPickerOpen((isOpen) => !isOpen)}
+            >
+              <span className="min-w-0">
+                <Text as="span" className="block truncate font-medium">
+                  {activeAccount ? getAccountLabel(activeAccount) : "Select card"}
+                </Text>
+                {activeAccount ? (
+                  <Text as="span" className="block truncate text-xs text-muted">
+                    {formatKopecks(activeAccount.balance, activeAccount.currency_code)}
+                  </Text>
+                ) : null}
+              </span>
+              <ChevronDown className="size-4 shrink-0 text-muted" />
+            </button>
+            {pickerOpen ? (
+              <div className="absolute right-0 z-20 mt-2 max-h-72 w-full overflow-auto rounded-card border border-border bg-surface p-2 shadow-2xl">
+                {overviewQuery.isLoading ? (
+                  <Text className="px-3 py-2 text-sm text-muted">Loading cards...</Text>
+                ) : accounts.length === 0 ? (
+                  <Text className="px-3 py-2 text-sm text-muted">No cards found</Text>
+                ) : (
+                  accounts.map((account) => (
+                    <button
+                      key={account.monobank_account_id}
+                      className={cn(
+                        "flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm transition-colors hover:bg-surface-elevated",
+                        account.monobank_account_id === activeAccountId && "bg-surface-elevated",
+                      )}
+                      type="button"
+                      onClick={() => handleAccountSelected(account.monobank_account_id)}
+                    >
+                      <span className="min-w-0">
+                        <Text as="span" className="block truncate font-medium">
+                          {getAccountLabel(account)}
+                        </Text>
+                        <Text as="span" className="block truncate text-xs text-muted">
+                          {account.monobank_account_id}
+                        </Text>
+                      </span>
+                      <Text as="span" className="shrink-0 font-semibold">
+                        {formatKopecks(account.balance, account.currency_code)}
+                      </Text>
+                    </button>
+                  ))
+                )}
+              </div>
+            ) : null}
+          </div>
+        </div>
       </div>
 
       <Card className="overflow-hidden p-0">
@@ -40,11 +149,13 @@ export function TransactionsPageClient() {
           <div className="p-5">
             <Text className="text-sm text-red-400">{error.message}</Text>
           </div>
-        ) : transactions.length === 0 ? (
+        ) : !activeAccountId ? (
+          <WidgetEmptyState className="m-5" />
+        ) : visibleTransactions.length === 0 ? (
           <WidgetEmptyState className="m-5" />
         ) : (
           <div className="divide-y divide-border">
-            {transactions.map((transaction) => (
+            {visibleTransactions.map((transaction) => (
               <div
                 key={transaction.monobank_transaction_id}
                 className="grid gap-4 px-5 py-4 md:grid-cols-[1.2fr_0.8fr_0.8fr_0.6fr] md:items-center"
@@ -65,7 +176,13 @@ export function TransactionsPageClient() {
                   </div>
                 </div>
                 <Text className="text-sm text-muted">
-                  {transaction.monobank_account_id}
+                  {getAccountLabel(
+                    accounts.find(
+                      (account) =>
+                        account.monobank_account_id ===
+                        transaction.monobank_account_id,
+                    ),
+                  )}
                 </Text>
                 <Text as="span" className="w-fit rounded-full bg-surface-elevated px-3 py-1 text-xs text-muted">
                   {transaction.is_hold ? "Hold" : "Completed"}
@@ -85,6 +202,50 @@ export function TransactionsPageClient() {
         )}
       </Card>
     </div>
+  );
+}
+
+function getAccountLabel(account?: MonobankAccount): string {
+  if (!account) {
+    return "Unknown card";
+  }
+
+  const lastFour = account.masked_pan[0]?.slice(-4);
+  const suffix = lastFour ? ` *${lastFour}` : "";
+
+  return `${account.account_type} ${getCurrencyCode(account.currency_code)}${suffix}`;
+}
+
+function matchesTransactionSearch(
+  transaction: MonobankTransaction,
+  query: string,
+  account?: MonobankAccount,
+): boolean {
+  const normalizedQuery = query.trim().toLowerCase();
+
+  if (!normalizedQuery) {
+    return true;
+  }
+
+  const searchableValues = [
+    transaction.description,
+    transaction.counter_name,
+    transaction.comment,
+    transaction.receipt_id,
+    transaction.invoice_id,
+    transaction.counter_edrpou,
+    transaction.counter_iban,
+    transaction.spending_category?.label,
+    transaction.is_hold ? "hold" : "completed",
+    formatDate(transaction.transaction_time),
+    formatKopecks(transaction.amount, transaction.currency_code),
+    String(transaction.amount / 100),
+    String(Math.abs(transaction.amount) / 100),
+    getAccountLabel(account),
+  ];
+
+  return searchableValues.some((value) =>
+    value?.toLowerCase().includes(normalizedQuery),
   );
 }
 

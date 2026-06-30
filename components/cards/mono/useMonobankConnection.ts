@@ -57,10 +57,12 @@ export function useMonobankTransactions(
   from: number,
   to: number,
   accountId?: string,
+  options?: { enabled?: boolean },
 ) {
   return useQuery({
     queryKey: ["monobank-transactions", accountId ?? "default", from, to],
     queryFn: () => fetchMonobankTransactions(from, to, accountId),
+    enabled: options?.enabled ?? true,
     refetchOnWindowFocus: false,
     retry: (failureCount, error) => {
       if (error instanceof MonobankApiError && error.status === 429) {
@@ -69,6 +71,7 @@ export function useMonobankTransactions(
 
       return failureCount < 1;
     },
-    staleTime: 30_000,
+    gcTime: 10 * 60_000,
+    staleTime: 5 * 60_000,
   });
 }

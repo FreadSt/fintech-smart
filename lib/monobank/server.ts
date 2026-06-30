@@ -313,23 +313,24 @@ export async function getDefaultMonobankAccountId(
 ): Promise<string> {
   const { data, error } = await supabase
     .from("monobank_accounts")
-    .select("monobank_account_id")
+    .select("monobank_account_id,balance,is_default")
     .eq("user_id", userId)
     .eq("is_visible", true)
-    .order("is_default", { ascending: false })
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+    .order("created_at", { ascending: true });
 
   if (error) {
     throw new Error(error.message);
   }
 
-  if (!data) {
+  if (!data || data.length === 0) {
     throw new MonobankRequestError("No Monobank account connected", 404);
   }
 
-  return data.monobank_account_id;
+  return (
+    data.find((account) => account.is_default && account.balance > 0) ??
+    data.find((account) => account.balance > 0) ??
+    data[0]
+  ).monobank_account_id;
 }
 
 export async function getCachedMonobankTransactions(
@@ -513,6 +514,11 @@ async function upsertAccounts(
     return;
   }
 
+  const defaultAccountIndex = Math.max(
+    accounts.findIndex((account) => account.balance > 0),
+    0,
+  );
+
   const { error } = await admin.from("monobank_accounts").upsert(
     accounts.map((account, index) => ({
       user_id: userId,
@@ -525,7 +531,7 @@ async function upsertAccounts(
       account_type: account.type,
       masked_pan: account.maskedPan ?? [],
       iban: account.iban ?? null,
-      is_default: index === 0,
+      is_default: index === defaultAccountIndex,
       is_visible: true,
       synced_at: syncedAt.toISOString(),
     })),
