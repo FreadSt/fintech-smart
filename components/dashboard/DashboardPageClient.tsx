@@ -17,6 +17,7 @@ import {
   buildBudgetData,
   buildDashboardSummary,
   buildSpendingCategories,
+  getBudgetCurrencyCode,
   toBankCard,
   toGoalItems,
   toQuickTransfers,
@@ -56,6 +57,7 @@ export function DashboardPageClient() {
   const balanceOptions = buildBalanceOptions(overview?.accounts ?? []);
   const spending = buildSpendingCategories(transactions);
   const budgetData = buildBudgetData(transactions);
+  const budgetCurrencyCode = getBudgetCurrencyCode(transactions);
   const goals = toGoalItems(overview?.jars ?? []);
   const transactionItems = toTransactionItems(transactions);
   const quickTransfers = toQuickTransfers(transactions);
@@ -89,6 +91,7 @@ export function DashboardPageClient() {
       <div className="xl:col-span-5 xl:row-start-2">
         <BudgetCard
           isLoading={isLoading}
+          currencyCode={budgetCurrencyCode}
           data={budgetData ?? emptyBudgetData}
         />
       </div>

@@ -6,6 +6,7 @@ import { Text } from "@/shared/text/Text";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { budgetData, budgetLegend, type Period } from "@/lib/dashboard/mock-data";
+import { formatKopecks } from "@/lib/monobank/money";
 import { PeriodSelect } from "@/components/dashboard/widgets/PeriodSelect";
 import Link from "next/link";
 import { WidgetEmptyState, WidgetSkeleton } from "./WidgetState";
@@ -13,16 +14,23 @@ const SEGMENT_KEYS = ['income', 'spent', 'scheduled', 'savings'] as const;
 
 type BudgetCardProps = {
   isLoading?: boolean;
+  currencyCode?: number;
   data?: typeof budgetData;
 };
 
 export function BudgetCard({
+  currencyCode = 980,
   isLoading = false,
   data = budgetData,
 }: BudgetCardProps) {
   const [period, setPeriod] = useState<Period>('monthly');
   const { labels, entries } = data[period];
-  const values = entries.flatMap(e => SEGMENT_KEYS.map(k => e[k]));
+  const visibleSegmentKeys = SEGMENT_KEYS.filter((key) =>
+    entries.some((entry) => entry[key] > 0),
+  );
+  const values = entries.flatMap((entry) =>
+    visibleSegmentKeys.map((key) => entry[key]),
+  );
 
   const maxValue = values.length > 0 ? Math.max(...values) : 0;
   const hasData = labels.length > 0 && entries.length > 0 && maxValue > 0;
@@ -54,14 +62,29 @@ export function BudgetCard({
           <div className="flex h-44 items-end justify-between gap-3">
             {entries.map((entry, colIdx) => (
               <div key={labels[colIdx]} className="flex flex-1 flex-col items-center gap-2">
-                <div className="flex h-36 w-full flex-col justify-end gap-1 overflow-hidden rounded-md bg-surface-elevated/60">
-                  {SEGMENT_KEYS.map((key, segIdx) => (
-                    <div
-                      key={key}
-                      className={`w-full rounded-md ${budgetLegend[segIdx]?.colorClass ?? 'bg-primary'}`}
-                      style={{ height: `${(entry[key] / maxValue) * 100}%` }}
-                    />
-                  ))}
+                <div className="flex h-36 w-full flex-col justify-end gap-1 rounded-md bg-surface-elevated/60">
+                  {visibleSegmentKeys.map((key) => {
+                    const segmentIndex = SEGMENT_KEYS.indexOf(key);
+                    const legend = budgetLegend[segmentIndex];
+                    const value = entry[key];
+                    const tooltip = `${legend?.label ?? key}: ${formatKopecks(
+                      value,
+                      currencyCode,
+                    )}`;
+
+                    return (
+                      <div
+                        key={key}
+                        className={`group relative w-full rounded-md ${legend?.colorClass ?? 'bg-primary'}`}
+                        style={{ height: `${(value / maxValue) * 100}%` }}
+                        title={tooltip}
+                      >
+                        <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-surface px-2 py-1 text-[11px] font-medium text-foreground shadow-xl group-hover:block group-focus-visible:block">
+                          {tooltip}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
                 <Text as="span" className="text-[11px] text-muted">{labels[colIdx]}</Text>
               </div>
@@ -69,12 +92,16 @@ export function BudgetCard({
           </div>
 
           <div className="mt-5 flex flex-wrap gap-4">
-            {budgetLegend.map((item) => (
-              <div key={item.label} className="flex items-center gap-2 text-xs text-muted">
-                <Text as="span" className={`size-2.5 rounded-full ${item.colorClass}`} />
-                {item.label}
-              </div>
-            ))}
+            {visibleSegmentKeys.map((key) => {
+              const item = budgetLegend[SEGMENT_KEYS.indexOf(key)];
+
+              return item ? (
+                <div key={item.label} className="flex items-center gap-2 text-xs text-muted">
+                  <Text as="span" className={`size-2.5 rounded-full ${item.colorClass}`} />
+                  {item.label}
+                </div>
+              ) : null;
+            })}
           </div>
         </>
       )}

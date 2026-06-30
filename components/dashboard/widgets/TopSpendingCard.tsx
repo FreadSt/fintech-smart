@@ -109,7 +109,11 @@ export function TopSpendingCard({
                   className="flex items-center justify-between text-sm"
                 >
                   <div className="flex items-center gap-2 text-muted">
-                    <Text as="span" className={`size-1.5 rounded-full ${category.colorClass}`} />
+                    <Text
+                      as="span"
+                      className="size-1.5 rounded-full"
+                      style={{ backgroundColor: category.color }}
+                    />
                     <Text as="span">{category.label}</Text>
                   </div>
                   <Text as="span">{category.percentage}%</Text>

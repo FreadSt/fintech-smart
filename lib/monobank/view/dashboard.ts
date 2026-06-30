@@ -1,4 +1,8 @@
 import type { BankCard } from "@/hooks/useBankCards";
+import {
+  resolveMonobankCategoryFromMcc,
+  shouldReplaceSpendingCategory,
+} from "@/lib/monobank/categories";
 import { formatKopecks, getCurrencyCode } from "@/lib/monobank/money";
 import type {
   MonobankAccount,
@@ -35,6 +39,11 @@ type SpendingCategory = {
   percentage: number;
   amount: string;
   colorClass: string;
+  color: string;
+};
+
+type CategoryAggregate = {
+  amount: number;
   color: string;
 };
 
@@ -133,16 +142,20 @@ export function buildDashboardSummary(
 export function toTransactionItems(
   transactions: MonobankTransaction[],
 ): TransactionItem[] {
-  return transactions.slice(0, 8).map((transaction) => ({
-    name: transaction.description,
-    category: transaction.spending_category?.label ?? "Other",
-    date: formatDate(transaction.transaction_time),
-    amount: formatKopecks(transaction.amount, transaction.currency_code),
-    positive: transaction.amount > 0,
-    initial: getInitial(transaction.description),
-    account: transaction.monobank_account_id,
-    status: transaction.is_hold ? "Hold" : "Completed",
-  }));
+  return transactions.slice(0, 8).map((transaction) => {
+    const spendingCategory = getTransactionSpendingCategory(transaction);
+
+    return {
+      name: transaction.description,
+      category: spendingCategory?.label ?? "Other",
+      date: formatDate(transaction.transaction_time),
+      amount: formatKopecks(transaction.amount, transaction.currency_code),
+      positive: transaction.amount > 0,
+      initial: getInitial(transaction.description),
+      account: transaction.monobank_account_id,
+      status: transaction.is_hold ? "Hold" : "Completed",
+    };
+  });
 }
 
 export function buildSpendingCategories(
@@ -162,25 +175,31 @@ export function buildSpendingCategories(
     return { categories: [], total: "No Data yet" };
   }
 
-  const byCategory = new Map<string, number>();
+  const byCategory = new Map<string, CategoryAggregate>();
 
   for (const transaction of scopedExpenses) {
-    const label = transaction.spending_category?.label ?? "Other";
-    byCategory.set(
-      label,
-      (byCategory.get(label) ?? 0) + Math.abs(transaction.amount),
-    );
+    const spendingCategory = getTransactionSpendingCategory(transaction);
+    const label = spendingCategory?.label ?? "Other";
+    const current = byCategory.get(label);
+
+    byCategory.set(label, {
+      amount: (current?.amount ?? 0) + Math.abs(transaction.amount),
+      color:
+        current?.color ??
+        spendingCategory?.color_hex ??
+        getFallbackCategoryColor(label, byCategory.size),
+    });
   }
 
   const categories = [...byCategory.entries()]
-    .sort((a, b) => b[1] - a[1])
+    .sort((a, b) => b[1].amount - a[1].amount)
     .slice(0, 4)
-    .map(([label, amount], index) => ({
+    .map(([label, category], index) => ({
       label,
-      percentage: Math.round((amount / total) * 100),
-      amount: formatKopecks(amount, currencyCode),
+      percentage: Math.round((category.amount / total) * 100),
+      amount: formatKopecks(category.amount, currencyCode),
       colorClass: categoryColorClasses[index] ?? "bg-muted",
-      color: categoryColors[index] ?? "#e7e7e7",
+      color: category.color,
     }));
 
   return {
@@ -208,6 +227,12 @@ export function buildBudgetData(
     weekly: buildWeeklyBudget(scoped),
     monthly,
   };
+}
+
+export function getBudgetCurrencyCode(
+  transactions: MonobankTransaction[],
+): number {
+  return getDominantCurrency(transactions);
 }
 
 export function toGoalItems(jars: MonobankJar[]): GoalItem[] {
@@ -385,6 +410,30 @@ function getDominantCurrency(transactions: MonobankTransaction[]): number {
     [...totals.entries()].sort((a, b) => b[1] - a[1])[0] ?? [];
 
   return currencyCode ?? 980;
+}
+
+function getTransactionSpendingCategory(transaction: MonobankTransaction) {
+  const resolvedCategory = resolveMonobankCategoryFromMcc(
+    transaction.mcc,
+    transaction.original_mcc,
+  );
+
+  if (
+    resolvedCategory &&
+    shouldReplaceSpendingCategory(transaction.spending_category)
+  ) {
+    return resolvedCategory;
+  }
+
+  return transaction.spending_category;
+}
+
+function getFallbackCategoryColor(label: string, index: number): string {
+  if (label === "Other") {
+    return "#e7e7e7";
+  }
+
+  return categoryColors[index] ?? "#e7e7e7";
 }
 
 function getInitial(value: string): string {

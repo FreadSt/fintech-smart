@@ -1,0 +1,287 @@
+export type MonobankSpendingCategory = {
+  slug: string;
+  label: string;
+  color_hex: string;
+};
+
+type MccRange = {
+  from: number;
+  to: number;
+  category: MonobankSpendingCategory;
+};
+
+const categories = {
+  auto: { slug: "auto", label: "Fuel & Auto", color_hex: "#fb923c" },
+  charity: { slug: "charity", label: "Charity", color_hex: "#fb7185" },
+  clothing: { slug: "clothing", label: "Clothing", color_hex: "#c084fc" },
+  education: { slug: "education", label: "Education", color_hex: "#a3e635" },
+  electronics: { slug: "electronics", label: "Electronics", color_hex: "#60a5fa" },
+  entertainment: {
+    slug: "entertainment",
+    label: "Entertainment",
+    color_hex: "#f472b6",
+  },
+  financialServices: {
+    slug: "financial_services",
+    label: "Financial Services",
+    color_hex: "#fbbf24",
+  },
+  groceries: { slug: "groceries", label: "Groceries", color_hex: "#6ee7b7" },
+  healthBeauty: {
+    slug: "health_beauty",
+    label: "Health & Beauty",
+    color_hex: "#f0abfc",
+  },
+  home: { slug: "home", label: "Home", color_hex: "#94a3b8" },
+  other: { slug: "other", label: "Other", color_hex: "#e7e7e7" },
+  pharmacy: { slug: "pharmacy", label: "Pharmacy", color_hex: "#a7f3d0" },
+  restaurants: {
+    slug: "restaurants",
+    label: "Cafes & Restaurants",
+    color_hex: "#facc15",
+  },
+  shopping: { slug: "shopping", label: "Shopping", color_hex: "#34d399" },
+  telecom: {
+    slug: "telecom",
+    label: "Mobile & Internet",
+    color_hex: "#818cf8",
+  },
+  transfers: { slug: "transfers", label: "Transfers", color_hex: "#e5e7eb" },
+  transport: { slug: "transport", label: "Transport", color_hex: "#38bdf8" },
+  travel: { slug: "travel", label: "Travel", color_hex: "#22d3ee" },
+  utilities: { slug: "utilities", label: "Utilities", color_hex: "#2dd4bf" },
+} satisfies Record<string, MonobankSpendingCategory>;
+
+const legacyCategorySlugs = new Set(["auto_transport", "food", "clothes"]);
+
+const explicitCategories = new Map<number, MonobankSpendingCategory>([
+  [5411, categories.groceries],
+  [5412, categories.groceries],
+  [5422, categories.groceries],
+  [5441, categories.groceries],
+  [5451, categories.groceries],
+  [5462, categories.groceries],
+  [5499, categories.groceries],
+  [5811, categories.restaurants],
+  [5812, categories.restaurants],
+  [5813, categories.restaurants],
+  [5814, categories.restaurants],
+  [4011, categories.transport],
+  [4111, categories.transport],
+  [4112, categories.transport],
+  [4121, categories.transport],
+  [4131, categories.transport],
+  [4784, categories.transport],
+  [4789, categories.transport],
+  [7523, categories.transport],
+  [5013, categories.auto],
+  [5511, categories.auto],
+  [5521, categories.auto],
+  [5531, categories.auto],
+  [5532, categories.auto],
+  [5533, categories.auto],
+  [5541, categories.auto],
+  [5542, categories.auto],
+  [5571, categories.auto],
+  [7531, categories.auto],
+  [7534, categories.auto],
+  [7535, categories.auto],
+  [7538, categories.auto],
+  [7542, categories.auto],
+  [7549, categories.auto],
+  [5122, categories.pharmacy],
+  [5912, categories.pharmacy],
+  [5975, categories.healthBeauty],
+  [5976, categories.healthBeauty],
+  [7230, categories.healthBeauty],
+  [7297, categories.healthBeauty],
+  [7298, categories.healthBeauty],
+  [7299, categories.healthBeauty],
+  [8041, categories.healthBeauty],
+  [8042, categories.healthBeauty],
+  [8043, categories.healthBeauty],
+  [8049, categories.healthBeauty],
+  [8050, categories.healthBeauty],
+  [8062, categories.healthBeauty],
+  [8071, categories.healthBeauty],
+  [8099, categories.healthBeauty],
+  [5137, categories.clothing],
+  [5139, categories.clothing],
+  [5611, categories.clothing],
+  [5621, categories.clothing],
+  [5631, categories.clothing],
+  [5641, categories.clothing],
+  [5651, categories.clothing],
+  [5655, categories.clothing],
+  [5661, categories.clothing],
+  [5681, categories.clothing],
+  [5691, categories.clothing],
+  [5697, categories.clothing],
+  [5698, categories.clothing],
+  [5699, categories.clothing],
+  [5931, categories.clothing],
+  [5944, categories.clothing],
+  [5021, categories.home],
+  [5200, categories.home],
+  [5211, categories.home],
+  [5231, categories.home],
+  [5251, categories.home],
+  [5261, categories.home],
+  [5712, categories.home],
+  [5713, categories.home],
+  [5714, categories.home],
+  [5718, categories.home],
+  [5719, categories.home],
+  [5722, categories.home],
+  [7622, categories.home],
+  [7623, categories.home],
+  [7629, categories.home],
+  [7641, categories.home],
+  [7699, categories.home],
+  [5045, categories.electronics],
+  [5732, categories.electronics],
+  [5734, categories.electronics],
+  [5735, categories.electronics],
+  [7372, categories.electronics],
+  [5815, categories.entertainment],
+  [5816, categories.entertainment],
+  [5817, categories.entertainment],
+  [5818, categories.entertainment],
+  [5932, categories.entertainment],
+  [5945, categories.entertainment],
+  [5993, categories.entertainment],
+  [7032, categories.entertainment],
+  [7832, categories.entertainment],
+  [7841, categories.entertainment],
+  [7911, categories.entertainment],
+  [7922, categories.entertainment],
+  [7929, categories.entertainment],
+  [7932, categories.entertainment],
+  [7933, categories.entertainment],
+  [7941, categories.entertainment],
+  [7991, categories.entertainment],
+  [7992, categories.entertainment],
+  [7993, categories.entertainment],
+  [7994, categories.entertainment],
+  [7995, categories.entertainment],
+  [7996, categories.entertainment],
+  [7997, categories.entertainment],
+  [7998, categories.entertainment],
+  [7999, categories.entertainment],
+  [4411, categories.travel],
+  [4511, categories.travel],
+  [4582, categories.travel],
+  [4722, categories.travel],
+  [5962, categories.travel],
+  [6513, categories.travel],
+  [7011, categories.travel],
+  [7012, categories.travel],
+  [7033, categories.travel],
+  [7512, categories.travel],
+  [4812, categories.telecom],
+  [4814, categories.telecom],
+  [4816, categories.telecom],
+  [4821, categories.telecom],
+  [4899, categories.telecom],
+  [4900, categories.utilities],
+  [5111, categories.education],
+  [5192, categories.education],
+  [5942, categories.education],
+  [5943, categories.education],
+  [5946, categories.education],
+  [5968, categories.education],
+  [8299, categories.education],
+  [8351, categories.education],
+  [8398, categories.charity],
+  [8641, categories.charity],
+  [8651, categories.charity],
+  [8661, categories.charity],
+  [6010, categories.financialServices],
+  [6011, categories.financialServices],
+  [6012, categories.financialServices],
+  [6051, categories.financialServices],
+  [6211, categories.financialServices],
+  [6300, categories.financialServices],
+  [6399, categories.financialServices],
+  [4829, categories.transfers],
+  [6532, categories.transfers],
+  [6533, categories.transfers],
+  [6536, categories.transfers],
+  [6537, categories.transfers],
+  [6538, categories.transfers],
+  [6540, categories.transfers],
+  [5300, categories.shopping],
+  [5310, categories.shopping],
+  [5311, categories.shopping],
+  [5331, categories.shopping],
+  [5399, categories.shopping],
+  [5733, categories.shopping],
+  [5940, categories.shopping],
+  [5941, categories.shopping],
+  [5947, categories.shopping],
+  [5948, categories.shopping],
+  [5949, categories.shopping],
+  [5950, categories.shopping],
+  [5960, categories.shopping],
+  [5963, categories.shopping],
+  [5964, categories.shopping],
+  [5965, categories.shopping],
+  [5966, categories.shopping],
+  [5967, categories.shopping],
+  [5969, categories.shopping],
+  [5970, categories.shopping],
+  [5971, categories.shopping],
+  [5972, categories.shopping],
+  [5973, categories.shopping],
+  [5977, categories.shopping],
+  [5992, categories.shopping],
+  [5994, categories.shopping],
+  [5995, categories.shopping],
+  [5996, categories.shopping],
+  [5997, categories.shopping],
+  [5998, categories.shopping],
+  [5999, categories.shopping],
+]);
+
+const categoryRanges: MccRange[] = [
+  { from: 3000, to: 3299, category: categories.travel },
+  { from: 3351, to: 3441, category: categories.travel },
+  { from: 3501, to: 3999, category: categories.travel },
+  { from: 742, to: 742, category: categories.healthBeauty },
+  { from: 8011, to: 8099, category: categories.healthBeauty },
+  { from: 8211, to: 8299, category: categories.education },
+  { from: 8398, to: 8661, category: categories.charity },
+];
+
+export function resolveMonobankCategoryFromMcc(
+  mcc: number | null | undefined,
+  originalMcc?: number | null,
+): MonobankSpendingCategory | null {
+  const effectiveMcc = mcc ?? originalMcc;
+
+  if (!effectiveMcc) {
+    return null;
+  }
+
+  const explicitCategory = explicitCategories.get(effectiveMcc);
+
+  if (explicitCategory) {
+    return explicitCategory;
+  }
+
+  return (
+    categoryRanges.find(
+      (range) => effectiveMcc >= range.from && effectiveMcc <= range.to,
+    )?.category ?? null
+  );
+}
+
+export function shouldReplaceSpendingCategory(
+  category: MonobankSpendingCategory | null | undefined,
+): boolean {
+  return (
+    !category ||
+    category.slug === categories.other.slug ||
+    legacyCategorySlugs.has(category.slug)
+  );
+}

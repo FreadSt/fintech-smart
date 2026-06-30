@@ -2,6 +2,10 @@ import "server-only";
 
 import type { User } from "@supabase/supabase-js";
 import { encrypt, decrypt } from "@/lib/crypto";
+import {
+  resolveMonobankCategoryFromMcc,
+  shouldReplaceSpendingCategory,
+} from "@/lib/monobank/categories";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { createAdminClient } from "@/supabase/admin";
 import type {
@@ -360,12 +364,23 @@ export async function getCachedMonobankTransactions(
     throw new Error(error.message);
   }
 
-  return ((data ?? []) as MonobankTransactionRow[]).map((transaction) => ({
-    ...transaction,
-    spending_category: Array.isArray(transaction.spending_category)
+  return ((data ?? []) as MonobankTransactionRow[]).map((transaction) => {
+    const spendingCategory = Array.isArray(transaction.spending_category)
       ? (transaction.spending_category[0] ?? null)
-      : transaction.spending_category,
-  }));
+      : transaction.spending_category;
+    const resolvedCategory = resolveMonobankCategoryFromMcc(
+      transaction.mcc,
+      transaction.original_mcc,
+    );
+
+    return {
+      ...transaction,
+      spending_category:
+        resolvedCategory && shouldReplaceSpendingCategory(spendingCategory)
+          ? resolvedCategory
+          : spendingCategory,
+    };
+  });
 }
 
 function buildMonobankStatementUrl(

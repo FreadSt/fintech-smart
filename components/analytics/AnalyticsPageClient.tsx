@@ -14,10 +14,13 @@ import {
   buildBudgetData,
   buildDashboardSummary,
   buildSpendingCategories,
+  getBudgetCurrencyCode,
 } from "@/lib/monobank/view/dashboard";
 import { budgetLegend } from "@/lib/dashboard/mock-data";
+import { formatKopecks } from "@/lib/monobank/money";
 
 const range = getDefaultStatementRange();
+const budgetSegmentKeys = ["income", "spent", "scheduled", "savings"] as const;
 
 export function AnalyticsPageClient() {
   const overviewQuery = useMonobankOverview();
@@ -33,6 +36,12 @@ export function AnalyticsPageClient() {
   const spending = buildSpendingCategories(transactions);
   const budget = buildBudgetData(transactions);
   const monthlyBudget = budget?.monthly;
+  const budgetCurrencyCode = getBudgetCurrencyCode(transactions);
+  const visibleBudgetSegmentKeys = monthlyBudget
+    ? budgetSegmentKeys.filter((key) =>
+        monthlyBudget.entries.some((entry) => entry[key] > 0),
+      )
+    : [];
   const isLoading = overviewQuery.isLoading || transactionsQuery.isLoading;
 
   return (
@@ -76,32 +85,46 @@ export function AnalyticsPageClient() {
           </div>
           {isLoading ? (
             <ChartSkeleton />
-          ) : !monthlyBudget || monthlyBudget.entries.length === 0 ? (
+          ) : !monthlyBudget ||
+            monthlyBudget.entries.length === 0 ||
+            visibleBudgetSegmentKeys.length === 0 ? (
             <WidgetEmptyState className="h-64" />
           ) : (
             <>
               <div className="flex h-64 items-end justify-between gap-3">
                 {monthlyBudget.entries.map((entry, index) => {
                   const max = Math.max(
-                    ...monthlyBudget.entries.flatMap((item) => [
-                      item.income,
-                      item.spent,
-                      item.scheduled,
-                      item.savings,
-                    ]),
+                    ...monthlyBudget.entries.flatMap((item) =>
+                      visibleBudgetSegmentKeys.map((key) => item[key]),
+                    ),
                     1,
                   );
 
                   return (
                     <div key={monthlyBudget.labels[index]} className="flex flex-1 flex-col items-center gap-2">
-                      <div className="flex h-52 w-full flex-col justify-end overflow-hidden rounded-2xl bg-surface-elevated/60">
-                        {[entry.income, entry.spent, entry.scheduled, entry.savings].map((height, segmentIndex) => (
-                          <div
-                            key={segmentIndex}
-                            className={`w-full ${budgetLegend[segmentIndex]?.colorClass ?? "bg-primary"}`}
-                            style={{ height: `${(height / max) * 100}%` }}
-                          />
-                        ))}
+                      <div className="flex h-52 w-full flex-col justify-end rounded-2xl bg-surface-elevated/60">
+                        {visibleBudgetSegmentKeys.map((key) => {
+                          const segmentIndex = budgetSegmentKeys.indexOf(key);
+                          const legend = budgetLegend[segmentIndex];
+                          const height = entry[key];
+                          const tooltip = `${legend?.label ?? key}: ${formatKopecks(
+                            height,
+                            budgetCurrencyCode,
+                          )}`;
+
+                          return (
+                            <div
+                              key={key}
+                              className={`group relative w-full ${budgetLegend[segmentIndex]?.colorClass ?? "bg-primary"}`}
+                              style={{ height: `${(height / max) * 100}%` }}
+                              title={tooltip}
+                            >
+                              <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-surface px-2 py-1 text-[11px] font-medium text-foreground shadow-xl group-hover:block group-focus-visible:block">
+                                {tooltip}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                       <Text as="span" className="text-[11px] text-muted">{monthlyBudget.labels[index]}</Text>
                     </div>
@@ -109,14 +132,18 @@ export function AnalyticsPageClient() {
                 })}
               </div>
               <div className="mt-5 grid gap-3 sm:grid-cols-4">
-                {budgetLegend.map((item) => (
-                  <div key={item.label} className="rounded-2xl bg-surface-elevated p-3">
-                    <div className="flex items-center gap-2 text-xs text-muted">
-                      <Text as="span" className={`size-2.5 rounded-full ${item.colorClass}`} />
-                      {item.label}
+                {visibleBudgetSegmentKeys.map((key) => {
+                  const item = budgetLegend[budgetSegmentKeys.indexOf(key)];
+
+                  return item ? (
+                    <div key={item.label} className="rounded-2xl bg-surface-elevated p-3">
+                      <div className="flex items-center gap-2 text-xs text-muted">
+                        <Text as="span" className={`size-2.5 rounded-full ${item.colorClass}`} />
+                        {item.label}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ) : null;
+                })}
               </div>
             </>
           )}
@@ -141,8 +168,11 @@ export function AnalyticsPageClient() {
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-surface-elevated">
                     <div
-                      className={`h-full rounded-full ${category.colorClass}`}
-                      style={{ width: `${category.percentage}%` }}
+                      className="h-full rounded-full"
+                      style={{
+                        backgroundColor: category.color,
+                        width: `${category.percentage}%`,
+                      }}
                     />
                   </div>
                 </div>
